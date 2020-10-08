@@ -82,7 +82,7 @@ public class SoftwareSyncController implements Closeable {
     }
 
     // Get Wifi Manager and use NetworkHelpers to determine local and leader IP addresses.
-    WifiManager wifiManager = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
+    WifiManager wifiManager = (WifiManager) context.getApplicationContext().getSystemService(Context.WIFI_SERVICE);
     InetAddress leaderAddress;
     InetAddress localAddress;
 

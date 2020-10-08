@@ -167,7 +167,7 @@ public class SoftwareSyncLeader extends SoftwareSyncBase {
   }
 
   /** Finds and updates client sync accuracy within list. */
-  void updateClientWithOffsetResponse(InetAddress clientAddress, SntpOffsetResponse response) {
+  void updateClientWithOffsetResponse(InetAddress clientAddress, TimeSyncOffsetResponse response) {
     // Update client sync accuracy locally.
     synchronized (clientsLock) {
       if (!clients.containsKey(clientAddress)) {

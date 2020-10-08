@@ -24,11 +24,6 @@ import java.net.InetAddress;
 import java.net.SocketTimeoutException;
 import java.nio.ByteBuffer;
 import java.nio.LongBuffer;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Simple Network Time Protocol (SNTP) for clock synchronization logic between leader and clients.
@@ -37,87 +32,12 @@ import java.util.concurrent.TimeUnit;
  * <p>Provides a doSNTP function allowing the leader to initiate synchronization with a client
  * address. The SntpListener class is used by the clients to handle responding to these messages.
  */
-public class SimpleNetworkTimeProtocol implements AutoCloseable {
+public class SimpleNetworkTimeProtocol extends TimeSyncProtocol {
   private static final String TAG = "SimpleNetworkTimeProtocol";
-
-  private final DatagramSocket nptpSocket;
-  private final int nptpPort;
-
-  /** Sequentially manages SNTP synchronization of clients. */
-  private final ExecutorService nptpExecutor = Executors.newSingleThreadExecutor();
-
-  /** Keeps track of SNTP client sync tasks already in the pipeline to avoid duplicate requests. */
-  private final Set<InetAddress> clientSyncTasks = new HashSet<>();
-
-  private final Object clientSyncTasksLock = new Object();
-  private final SoftwareSyncLeader leader;
-  private final Ticker localClock;
 
   public SimpleNetworkTimeProtocol(
       Ticker localClock, DatagramSocket nptpSocket, int nptpPort, SoftwareSyncLeader leader) {
-    this.localClock = localClock;
-    this.nptpSocket = nptpSocket;
-    this.nptpPort = nptpPort;
-    this.leader = leader;
-  }
-
-  /**
-   * Check if requesting client is already in the queue. If not, then submit a new task to do n-PTP
-   * synchronization with that client. Synchronization involves sending and receiving messages on
-   * the nptp socket, calculating the clock offsetNs, and finally sending an rpc to update the
-   * offsetNs on the client.
-   */
-  @SuppressWarnings("FutureReturnValueIgnored")
-  void submitNewSyncRequest(final InetAddress clientAddress) {
-    // Skip if we have already enqueued a sync task with this client.
-    synchronized (clientSyncTasksLock) {
-      if (clientSyncTasks.contains(clientAddress)) {
-        Log.w(TAG, "Already queued sync with " + clientAddress + ", skipping.");
-        return;
-      } else {
-        clientSyncTasks.add(clientAddress);
-      }
-    }
-
-    // Add SNTP request to executor queue.
-    nptpExecutor.submit(
-        () -> {
-          // If the client no longer exists, no need to synchronize.
-          if (!leader.getClients().containsKey(clientAddress)) {
-            Log.w(TAG, "Client was removed, exiting SNTP routine.");
-            return true;
-          }
-
-          Log.d(TAG, "Starting sync with client" + clientAddress);
-          // Calculate clock offsetNs between client and leader using a naive
-          // version of the precision time protocol (SNTP).
-          SntpOffsetResponse response = doSNTP(clientAddress);
-
-          if (response.status()) {
-            // Apply local offsetNs to bestOffset so everyone has the same offsetNs.
-            final long alignedOffset = response.offsetNs() + leader.getLeaderFromLocalNs();
-
-            // Update client sync accuracy locally.
-            leader.updateClientWithOffsetResponse(clientAddress, response);
-
-            // Send an RPC to update the offsetNs on the client.
-            Log.d(TAG, "Sending offsetNs update to " + clientAddress + ": " + alignedOffset);
-            leader.sendRpc(
-                SyncConstants.METHOD_OFFSET_UPDATE, String.valueOf(alignedOffset), clientAddress);
-          }
-
-          // Pop client from the queue regardless of success state. Clients  will be added back in
-          // the queue as needed based on their state at the next heartbeat.
-          synchronized (clientSyncTasksLock) {
-            clientSyncTasks.remove(clientAddress);
-          }
-
-          if (response.status()) {
-            leader.onRpc(SyncConstants.METHOD_MSG_OFFSET_UPDATED, clientAddress.toString());
-          }
-
-          return response.status();
-        });
+    super(localClock, nptpSocket, nptpPort, leader);
   }
 
   /**
@@ -143,40 +63,41 @@ public class SimpleNetworkTimeProtocol implements AutoCloseable {
    * @param clientAddress The client InetAddress to perform synchronization with.
    * @return SntpOffsetResponse containing the offsetNs and sync accuracy with the client.
    */
-  private SntpOffsetResponse doSNTP(InetAddress clientAddress) throws IOException {
+  @Override
+  protected TimeSyncOffsetResponse doTimeSync(InetAddress clientAddress) throws IOException {
     final int longSize = Long.SIZE / Byte.SIZE;
     byte[] buf = new byte[longSize * 3];
     long bestLatency = Long.MAX_VALUE; // Start with initial high round trip
     long bestOffset = 0;
     // If there are several failed SNTP round trip sync messages, fail out.
     int missingMessageCountdown = 10;
-    SntpOffsetResponse failureResponse =
-        SntpOffsetResponse.create(/*offset=*/ 0, /*syncAccuracy=*/ 0, false);
+    TimeSyncOffsetResponse failureResponse =
+        TimeSyncOffsetResponse.create(/*offset=*/ 0, /*syncAccuracy=*/ 0, false);
 
     for (int i = 0; i < SyncConstants.NUM_SNTP_CYCLES; i++) {
       // 1 - Send UDP SNTP message to the client with t0 at time t0.
-      long t0 = localClock.read();
+      long t0 = mLocalClock.read();
       ByteBuffer t0bytebuffer = ByteBuffer.allocate(longSize);
       t0bytebuffer.putLong(t0);
-      nptpSocket.send(new DatagramPacket(t0bytebuffer.array(), longSize, clientAddress, nptpPort));
+      mTimeSyncSocket.send(new DatagramPacket(t0bytebuffer.array(), longSize, clientAddress, mTimeSyncPort));
 
       // Steps 2 and 3 happen on client side B.
       // 4 - Recv UDP message with t0,t0',t1 at time t1'.
       DatagramPacket packet = new DatagramPacket(buf, buf.length);
       try {
-        nptpSocket.receive(packet);
+        mTimeSyncSocket.receive(packet);
       } catch (SocketTimeoutException e) {
         // If we didn't receive a message in time, then skip this PTP pair and continue.
         Log.w(TAG, "UDP PTP message missing, skipping");
         missingMessageCountdown--;
         if (missingMessageCountdown <= 0) {
           Log.w(
-              TAG, String.format("Missed too many messages, leaving doSNTP for %s", clientAddress));
+              TAG, String.format("Missed too many messages, leaving doTimeSync for %s", clientAddress));
           return failureResponse;
         }
         continue;
       }
-      final long t3 = localClock.read();
+      final long t3 = mLocalClock.read();
 
       if (packet.getLength() != 3 * longSize) {
         Log.w(TAG, "Corrupted UDP message, skipping");
@@ -200,7 +121,7 @@ public class SimpleNetworkTimeProtocol implements AutoCloseable {
 
         // Note: Wait or catch and throw away the next message to get back in sync.
         try {
-          nptpSocket.receive(packet);
+          mTimeSyncSocket.receive(packet);
         } catch (SocketTimeoutException e) {
           // If still waiting, continue.
         }
@@ -233,17 +154,6 @@ public class SimpleNetworkTimeProtocol implements AutoCloseable {
             "Client %s : SNTP best latency %,d ns, offsetNs %,d ns",
             clientAddress, bestLatency, bestOffset));
 
-    return SntpOffsetResponse.create(bestOffset, bestLatency, true);
-  }
-
-  @Override
-  public void close() {
-    nptpExecutor.shutdown();
-    // Wait up to 0.5 seconds for the executor service to finish.
-    try {
-      nptpExecutor.awaitTermination(500, TimeUnit.MILLISECONDS);
-    } catch (InterruptedException e) {
-      throw new IllegalStateException("SNTP Executor didn't close gracefully: " + e);
-    }
+    return TimeSyncOffsetResponse.create(bestOffset, bestLatency, true);
   }
 }
