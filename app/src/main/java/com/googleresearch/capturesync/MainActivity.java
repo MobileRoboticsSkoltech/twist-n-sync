@@ -182,7 +182,7 @@ public class MainActivity extends Activity {
     // We need this because #onConfigurationChanged doesn't get called when
     // the app launches
     maybeUpdateConfiguration(getResources().getConfiguration());
-    startSoftwareSync();
+    //startSoftwareSync();
 
   }
 
@@ -242,7 +242,6 @@ public class MainActivity extends Activity {
   public void onResume() {
     Log.d(TAG, "onResume");
     super.onResume(); // Required.
-    /*
     surfaceView
         .getHolder()
         .setFixedSize(viewfinderResolution.getWidth(), viewfinderResolution.getHeight());
@@ -252,13 +251,13 @@ public class MainActivity extends Activity {
 
     startCameraThread();
 
-     */
+     
   }
 
   @Override
   public void onPause() {
     Log.d(TAG, "onPause");
-    /*closeCamera();
+    closeCamera();
     stopCameraThread();
     // Make the SurfaceView GONE so that on resume, surfaceCreated() is called,
     // and on pause, surfaceDestroyed() is called.
@@ -266,7 +265,6 @@ public class MainActivity extends Activity {
     surfaceView.setVisibility(View.GONE);
 
 
-     */
     super.onPause(); // required
   }
 
