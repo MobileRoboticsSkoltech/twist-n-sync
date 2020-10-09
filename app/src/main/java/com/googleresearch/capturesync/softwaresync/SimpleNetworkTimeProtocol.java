@@ -64,7 +64,7 @@ public class SimpleNetworkTimeProtocol extends TimeSyncProtocol {
    * @return SntpOffsetResponse containing the offsetNs and sync accuracy with the client.
    */
   @Override
-  protected TimeSyncOffsetResponse doTimeSync(InetAddress clientAddress) throws IOException {
+  protected TimeSyncOffsetResponse doTimeSync(InetAddress clientAddress) {
     final int longSize = Long.SIZE / Byte.SIZE;
     byte[] buf = new byte[longSize * 3];
     long bestLatency = Long.MAX_VALUE; // Start with initial high round trip
@@ -79,12 +79,12 @@ public class SimpleNetworkTimeProtocol extends TimeSyncProtocol {
       long t0 = mLocalClock.read();
       ByteBuffer t0bytebuffer = ByteBuffer.allocate(longSize);
       t0bytebuffer.putLong(t0);
-      mTimeSyncSocket.send(new DatagramPacket(t0bytebuffer.array(), longSize, clientAddress, mTimeSyncPort));
 
       // Steps 2 and 3 happen on client side B.
       // 4 - Recv UDP message with t0,t0',t1 at time t1'.
       DatagramPacket packet = new DatagramPacket(buf, buf.length);
       try {
+        mTimeSyncSocket.send(new DatagramPacket(t0bytebuffer.array(), longSize, clientAddress, mTimeSyncPort));
         mTimeSyncSocket.receive(packet);
       } catch (SocketTimeoutException e) {
         // If we didn't receive a message in time, then skip this PTP pair and continue.
@@ -93,6 +93,16 @@ public class SimpleNetworkTimeProtocol extends TimeSyncProtocol {
         if (missingMessageCountdown <= 0) {
           Log.w(
               TAG, String.format("Missed too many messages, leaving doTimeSync for %s", clientAddress));
+          return failureResponse;
+        }
+        continue;
+      } catch (IOException e) {
+        // If we didn't receive a message in time, then skip this PTP pair and continue.
+        Log.w(TAG, "UDP PTP message missing, skipping");
+        missingMessageCountdown--;
+        if (missingMessageCountdown <= 0) {
+          Log.w(
+                  TAG, String.format("Missed too many messages, leaving doTimeSync for %s", clientAddress));
           return failureResponse;
         }
         continue;
@@ -124,6 +134,8 @@ public class SimpleNetworkTimeProtocol extends TimeSyncProtocol {
           mTimeSyncSocket.receive(packet);
         } catch (SocketTimeoutException e) {
           // If still waiting, continue.
+        } catch (IOException e) {
+
         }
         // Since this was an incorrect cycle, move on to a new cycle.
         continue;

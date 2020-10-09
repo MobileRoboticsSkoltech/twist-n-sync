@@ -492,7 +492,7 @@ public class MainActivity extends Activity {
    * Gathers useful camera characteristics like available resolutions and cache them so we don't
    * have to query the CameraCharacteristics struct again.
    */
-  private void cacheCameraCharacteristics() throws CameraAccessException {
+  private void cacheCameraCharacteristics () throws CameraAccessException {
     cameraId = null;
     for (String id : cameraManager.getCameraIdList()) {
       if (cameraManager.getCameraCharacteristics(id).get(CameraCharacteristics.LENS_FACING)

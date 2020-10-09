@@ -16,7 +16,8 @@ abstract class TimeSyncProtocol implements AutoCloseable {
 
     /** Sequentially manages time synchronization of clients. */
 
-    protected final ExecutorService mTimeSyncExecutor = Executors.newSingleThreadExecutor();
+    // TODO: experiment with n threads and take that value to constants
+    protected final ExecutorService mTimeSyncExecutor = Executors.newFixedThreadPool(3);
     protected final DatagramSocket mTimeSyncSocket;
     protected final int mTimeSyncPort;
 
@@ -93,7 +94,7 @@ abstract class TimeSyncProtocol implements AutoCloseable {
                 });
     }
 
-    protected abstract TimeSyncOffsetResponse doTimeSync(InetAddress clientAddress) throws IOException;
+    protected abstract TimeSyncOffsetResponse doTimeSync(InetAddress clientAddress);
 
     @Override
     public void close() {
