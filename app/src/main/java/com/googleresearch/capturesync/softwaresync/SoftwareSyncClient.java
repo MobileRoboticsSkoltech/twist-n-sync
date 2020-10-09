@@ -16,7 +16,11 @@
 
 package com.googleresearch.capturesync.softwaresync;
 
+import android.content.Context;
 import android.util.Log;
+
+import com.googleresearch.capturesync.GlobalClass;
+
 import java.io.IOException;
 import java.net.InetAddress;
 import java.util.Map;
@@ -62,8 +66,9 @@ public class SoftwareSyncClient extends SoftwareSyncBase {
 
   private long lastLeaderOffsetResponseTimeNs;
 
-  private SntpListener sntpThread;
-
+  //private SntpListener sntpThread;
+  private ImuTimeSyncListener imuSyncThread;
+  
   public SoftwareSyncClient(
       String name,
       InetAddress address,
@@ -195,20 +200,20 @@ public class SoftwareSyncClient extends SoftwareSyncBase {
 
   /** Start SNTP thread if it's not already running. */
   private void maybeStartSntpThread() {
-    if (sntpThread == null || !sntpThread.isAlive()) {
+    if (imuSyncThread == null || !imuSyncThread.isAlive()) {
       // Set up SNTP thread.
-      sntpThread = new SntpListener(localClock, sntpSocket, sntpPort);
-      sntpThread.start();
+      imuSyncThread = new ImuTimeSyncListener(localClock, sntpSocket, sntpPort, GlobalClass.context);
+      imuSyncThread.start();
     }
   }
 
   /** Blocking stop of SNTP Thread if it's not already stopped. */
   private void maybeStopSntpThread() {
-    if (sntpThread != null && sntpThread.isAlive()) {
-      sntpThread.stopRunning();
+    if (imuSyncThread != null && imuSyncThread.isAlive()) {
+      imuSyncThread.stopRunning();
       // Wait for thread to finish.
       try {
-        sntpThread.join();
+        imuSyncThread.join();
       } catch (InterruptedException e) {
         throw new IllegalStateException("SNTP Thread didn't close gracefully: " + e);
       }

@@ -17,7 +17,10 @@ abstract class TimeSyncProtocol implements AutoCloseable {
     /** Sequentially manages time synchronization of clients. */
 
     // TODO: experiment with n threads and take that value to constants
-    protected final ExecutorService mTimeSyncExecutor = Executors.newFixedThreadPool(3);
+    //private final ExecutorService mTimeSyncExecutor = Executors.newFixedThreadPool(1);
+
+    protected abstract ExecutorService getTimeSyncExecutor();
+
     protected final DatagramSocket mTimeSyncSocket;
     protected final int mTimeSyncPort;
 
@@ -55,7 +58,7 @@ abstract class TimeSyncProtocol implements AutoCloseable {
         }
 
         // Add time sync request to executor queue.
-        mTimeSyncExecutor.submit(
+        this.getTimeSyncExecutor().submit(
                 () -> {
                     // If the client no longer exists, no need to synchronize.
                     if (!mLeader.getClients().containsKey(clientAddress)) {
@@ -98,10 +101,10 @@ abstract class TimeSyncProtocol implements AutoCloseable {
 
     @Override
     public void close() {
-        mTimeSyncExecutor.shutdown();
+        this.getTimeSyncExecutor().shutdown();
         // Wait up to 0.5 seconds for the executor service to finish.
         try {
-            mTimeSyncExecutor.awaitTermination(500, TimeUnit.MILLISECONDS);
+            this.getTimeSyncExecutor().awaitTermination(500, TimeUnit.MILLISECONDS);
         } catch (InterruptedException e) {
             throw new IllegalStateException("Time sync Executor didn't close gracefully: " + e);
         }

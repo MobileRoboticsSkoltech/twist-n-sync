@@ -24,6 +24,8 @@ import java.net.InetAddress;
 import java.net.SocketTimeoutException;
 import java.nio.ByteBuffer;
 import java.nio.LongBuffer;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * Simple Network Time Protocol (SNTP) for clock synchronization logic between leader and clients.
@@ -34,6 +36,13 @@ import java.nio.LongBuffer;
  */
 public class SimpleNetworkTimeProtocol extends TimeSyncProtocol {
   private static final String TAG = "SimpleNetworkTimeProtocol";
+
+  private final ExecutorService mTimeSyncExecutor = Executors.newFixedThreadPool(1);
+
+  @Override
+  protected ExecutorService getTimeSyncExecutor() {
+    return mTimeSyncExecutor;
+  }
 
   public SimpleNetworkTimeProtocol(
       Ticker localClock, DatagramSocket nptpSocket, int nptpPort, SoftwareSyncLeader leader) {
@@ -86,23 +95,13 @@ public class SimpleNetworkTimeProtocol extends TimeSyncProtocol {
       try {
         mTimeSyncSocket.send(new DatagramPacket(t0bytebuffer.array(), longSize, clientAddress, mTimeSyncPort));
         mTimeSyncSocket.receive(packet);
-      } catch (SocketTimeoutException e) {
-        // If we didn't receive a message in time, then skip this PTP pair and continue.
-        Log.w(TAG, "UDP PTP message missing, skipping");
-        missingMessageCountdown--;
-        if (missingMessageCountdown <= 0) {
-          Log.w(
-              TAG, String.format("Missed too many messages, leaving doTimeSync for %s", clientAddress));
-          return failureResponse;
-        }
-        continue;
       } catch (IOException e) {
         // If we didn't receive a message in time, then skip this PTP pair and continue.
         Log.w(TAG, "UDP PTP message missing, skipping");
         missingMessageCountdown--;
         if (missingMessageCountdown <= 0) {
           Log.w(
-                  TAG, String.format("Missed too many messages, leaving doTimeSync for %s", clientAddress));
+              TAG, String.format("Missed too many messages, leaving doTimeSync for %s", clientAddress));
           return failureResponse;
         }
         continue;
