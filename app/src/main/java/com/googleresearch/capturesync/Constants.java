@@ -21,6 +21,8 @@ import com.googleresearch.capturesync.softwaresync.TimeUtils;
 
 /** Constants including what type of images to save and the save directory. */
 public final class Constants {
+  public static final String LEADER_IP = "192.168.1.107";
+
   public static final int DEFAULT_CAMERA_FACING = CameraCharacteristics.LENS_FACING_BACK;
 
   /**

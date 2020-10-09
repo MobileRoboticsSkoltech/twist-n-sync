@@ -513,7 +513,7 @@ public class MainActivity extends Activity {
       throw new IllegalStateException("Viewfinder unavailable!");
     }
     viewfinderResolution =
-        Collections.max(Arrays.asList(viewfinderOutputSizes), new CompareSizesByArea());
+        Collections.min(Arrays.asList(viewfinderOutputSizes), new CompareSizesByArea());
 
     Size[] rawOutputSizes = scm.getOutputSizes(ImageFormat.RAW10);
     if (rawOutputSizes != null) {
@@ -524,7 +524,7 @@ public class MainActivity extends Activity {
     } else {
       Log.i(TAG, "Bayer RAW unavailable!");
     }
-    rawImageResolution = Collections.max(Arrays.asList(rawOutputSizes), new CompareSizesByArea());
+    //rawImageResolution = Collections.max(Arrays.asList(rawOutputSizes), new CompareSizesByArea());
 
     Size[] yuvOutputSizes = scm.getOutputSizes(ImageFormat.YUV_420_888);
     if (yuvOutputSizes != null) {
@@ -537,7 +537,7 @@ public class MainActivity extends Activity {
     }
     yuvImageResolution = Collections.max(Arrays.asList(yuvOutputSizes), new CompareSizesByArea());
     Log.i(TAG, "Chosen viewfinder resolution: " + viewfinderResolution);
-    Log.i(TAG, "Chosen raw resolution: " + rawImageResolution);
+    //Log.i(TAG, "Chosen raw resolution: " + rawImageResolution);
     Log.i(TAG, "Chosen yuv resolution: " + yuvImageResolution);
   }
 

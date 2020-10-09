@@ -33,6 +33,8 @@ import com.googleresearch.capturesync.softwaresync.TimeUtils;
 import java.io.Closeable;
 import java.io.IOException;
 import java.net.InetAddress;
+import java.net.ServerSocket;
+import java.net.Socket;
 import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.util.HashMap;
@@ -93,7 +95,8 @@ public class SoftwareSyncController implements Closeable {
     try {
       NetworkHelpers networkHelper = new NetworkHelpers(wifiManager);
       localAddress = NetworkHelpers.getIPAddress();
-      leaderAddress = networkHelper.getHotspotServerAddress();
+      //leaderAddress = networkHelper.getHotspotServerAddress();
+      leaderAddress = InetAddress.getByName(Constants.LEADER_IP);
 
       // Note: This is a brittle way of checking leadership that may not work on all devices.
       // Leader only if it is the one with same IP address as the server, or a zero IP address.
@@ -157,6 +160,9 @@ public class SoftwareSyncController implements Closeable {
 
     if (isLeader) {
       // Leader.
+
+
+
       long initTimeNs = TimeUtils.millisToNanos(System.currentTimeMillis());
       // Create rpc mapping specific to leader.
       Map<Integer, RpcCallback> leaderRpcs = new HashMap<>(sharedRpcs);
@@ -167,6 +173,7 @@ public class SoftwareSyncController implements Closeable {
       softwareSync = new SoftwareSyncLeader(name, initTimeNs, localAddress, leaderRpcs);
     } else {
       // Client.
+
       Map<Integer, RpcCallback> clientRpcs = new HashMap<>(sharedRpcs);
       clientRpcs.put(
           SyncConstants.METHOD_MSG_WAITING_FOR_LEADER,
