@@ -133,53 +133,5 @@ public class ImuTimeSyncListener extends Thread {
             }
         }
         Log.w(TAG, "Time Sync Listener thread finished.");
-
-        //while ()
-        /*
-        byte[] buf = new byte[SyncConstants.SNTP_BUFFER_SIZE];
-        while (running && !nptpSocket.isClosed()) {
-            DatagramPacket packet = new DatagramPacket(buf, buf.length);
-            try {
-                // Listen for PTP messages.
-                nptpSocket.receive(packet);
-
-                // 2 (B) - Recv UDP message with t0 at time t0'.
-                long t0r = localClock.read();
-
-                final int longSize = Long.SIZE / Byte.SIZE;
-
-                if (packet.getLength() != longSize) {
-                    Log.e(
-                            TAG,
-                            "Received UDP message with incorrect packet length "
-                                    + packet.getLength()
-                                    + ", skipping.");
-                    continue;
-                }
-
-                // 3 (B) - Send UDP message with t0,t0',t1 at time t1.
-                long t1 = localClock.read();
-                ByteBuffer buffer = ByteBuffer.allocate(3 * longSize);
-                buffer.put(packet.getData(), 0, longSize);
-                buffer.putLong(longSize, t0r);
-                buffer.putLong(2 * longSize, t1);
-                byte[] bufferArray = buffer.array();
-
-                // Send SNTP response back.
-                DatagramPacket response =
-                        new DatagramPacket(bufferArray, bufferArray.length, packet.getAddress(), nptpPort);
-                nptpSocket.send(response);
-            } catch (SocketTimeoutException e) {
-                // It is normal to time out most of the time, continue.
-            } catch (IOException e) {
-                if (nptpSocket.isClosed()) {
-                    // Stop here if socket is closed.
-                    return;
-                }
-                throw new IllegalStateException("SNTP Thread didn't close gracefully: " + e);
-            }
-        }
-        Log.w(TAG, "SNTP Listener thread finished.");
-    */
     }
 }
