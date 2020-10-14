@@ -52,16 +52,10 @@ public class ImuTimeSyncListener extends Thread {
             DatagramPacket packet = new DatagramPacket(buf, buf.length);
             try {
                 // Listen for recording start messages
-
                 imuTimeSyncSocket.receive(packet);
 
-                // Separate packet string into int method and string payload
-                // First 4 bytes is the integer method.
                 ByteBuffer packetByteBuffer = ByteBuffer.wrap(packet.getData());
-                int method = packetByteBuffer.getInt(); // From first 4 bytes.
-                // Rest of the bytes are the payload.
-                String payload = new String(packet.getData(), 4, packet.getLength() - 4);
-
+                int method = packetByteBuffer.getInt();
                 if (method != SyncConstants.METHOD_MSG_START_RECORDING) {
                     Log.e(
                             TAG,
@@ -76,8 +70,29 @@ public class ImuTimeSyncListener extends Thread {
                 String timeStamp = new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss").format(new Date());
                 recorder.startRecording(mContext, timeStamp);
                 // Recording process
-                Log.d(TAG, "Started recording, sleep for 10 seconds");
-                Thread.sleep(SyncConstants.SENSOR_REC_PERIOD_MILLIS);
+                Log.d(TAG, "Started recording");
+
+                // Receive stop recording message,
+                // need to temporarily increase socket wait time
+                imuTimeSyncSocket.setSoTimeout(
+                        SyncConstants.SOCKET_WAIT_TIME_MS +
+                        SyncConstants.SENSOR_REC_PERIOD_MILLIS
+                );
+                imuTimeSyncSocket.receive(packet);
+                // Return short wait time. TODO: more elegant implementation?
+                imuTimeSyncSocket.setSoTimeout(
+                        SyncConstants.SOCKET_WAIT_TIME_MS
+                );
+                packetByteBuffer = ByteBuffer.wrap(packet.getData());
+                method = packetByteBuffer.getInt();
+                if (method != SyncConstants.METHOD_MSG_STOP_RECORDING) {
+                    Log.e(
+                            TAG,
+                            "Received UDP message with incorrect method "
+                                    + method
+                                    + ", skipping.");
+                    continue;
+                }
                 recorder.stopRecording();
                 recorder.disableSensors();
 
@@ -85,40 +100,36 @@ public class ImuTimeSyncListener extends Thread {
                 Socket sendSocket;
                 FileDetails details;
                 byte data[];
-                try {
-                    String path = mContext.getExternalFilesDir(null).getPath() + "/" + timeStamp;
-                    // TODO: add gyro and unique filenames!!!!
-                    File file = new File(path, "accel_" + timeStamp);
-                    Log.d(TAG, "Sensor file opened");
-                    sendSocket = new Socket(packet.getAddress(), imuTimeSyncPort);
-                    // File Object for accesing file Details
-                    Log.d(TAG, "Connected to Server...");
-                    data = new byte[2048];
-                    details = new FileDetails();
-                    details.setDetails(file.getName(), file.length());
+                String path = mContext.getExternalFilesDir(null).getPath() + "/" + timeStamp;
+                // TODO: add unique filenames!!!! Move to constants
+                File file = new File(path, "gyro_" + timeStamp);
+                Log.d(TAG, "Sensor file opened");
+                sendSocket = new Socket(packet.getAddress(), imuTimeSyncPort);
+                // File Object for accesing file Details
+                Log.d(TAG, "Connected to Server...");
+                data = new byte[2048];
+                details = new FileDetails();
+                details.setDetails(file.getName(), file.length());
 
-                    // Sending file details to the client
-                    Log.d(TAG, "Sending file details...");
-                    ObjectOutputStream sendDetails = new ObjectOutputStream(sendSocket.getOutputStream());
-                    sendDetails.writeObject(details);
-                    sendDetails.flush();
-                    // Sending File Data
-                    Log.d(TAG, "Sending file data...");
-                    FileInputStream fileStream = new FileInputStream(file);
-                    BufferedInputStream fileBuffer = new BufferedInputStream(fileStream);
-                    OutputStream out = sendSocket.getOutputStream();
-                    int count;
-                    while ((count = fileBuffer.read(data)) > 0) {
-                        Log.d(TAG, "Data Sent : " + count);
-                        out.write(data, 0, count);
-                        out.flush();
-                    }
-                    out.close();
-                    fileBuffer.close();
-                    fileStream.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
+                // Sending file details to the client
+                Log.d(TAG, "Sending file details...");
+                ObjectOutputStream sendDetails = new ObjectOutputStream(sendSocket.getOutputStream());
+                sendDetails.writeObject(details);
+                sendDetails.flush();
+                // Sending File Data
+                Log.d(TAG, "Sending file data...");
+                FileInputStream fileStream = new FileInputStream(file);
+                BufferedInputStream fileBuffer = new BufferedInputStream(fileStream);
+                OutputStream out = sendSocket.getOutputStream();
+                int count;
+                while ((count = fileBuffer.read(data)) > 0) {
+                    Log.d(TAG, "Data Sent : " + count);
+                    out.write(data, 0, count);
+                    out.flush();
                 }
+                out.close();
+                fileBuffer.close();
+                fileStream.close();
 
             } catch (SocketTimeoutException e) {
                 // TODO
@@ -128,8 +139,6 @@ public class ImuTimeSyncListener extends Thread {
                 } else {
                     throw new IllegalStateException("Socket Receive/Send error: " + e);
                 }
-            } catch (InterruptedException e) {
-                e.printStackTrace();
             }
         }
         Log.w(TAG, "Time Sync Listener thread finished.");

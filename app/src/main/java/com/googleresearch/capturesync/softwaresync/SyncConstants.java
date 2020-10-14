@@ -63,7 +63,7 @@ public class SyncConstants {
 
   /** IMU Time Sync */
   public static final int METHOD_MSG_START_RECORDING = 10_101;
-  public static final int METHOD_MSG_FINISHED_RECORDING = 10_102;
+  public static final int METHOD_MSG_STOP_RECORDING = 10_102;
   public static final int SENSOR_REC_PERIOD_MILLIS = 10_000;
 
   private SyncConstants() {}
