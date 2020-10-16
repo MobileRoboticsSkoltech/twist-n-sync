@@ -5,8 +5,6 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
-import android.net.Uri;
-import android.os.ParcelFileDescriptor;
 import android.util.Log;
 
 import java.io.BufferedWriter;
@@ -14,7 +12,6 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.Date;
 
 
 /**
@@ -31,6 +28,8 @@ public class RawSensorInfo implements SensorEventListener {
     final private Sensor mSensorAccel;
     private PrintWriter mGyroBufferedWriter;
     private PrintWriter mAccelBufferedWriter;
+    private String mLastGyroPath;
+    private String mLastAccelPath;
     private File mGyroFile;
     private File mAccelFile;
 
@@ -89,15 +88,19 @@ public class RawSensorInfo implements SensorEventListener {
 
     /**
      * Handles sensor info file creation, uses StorageUtils to work both with SAF and standard file
-     * access.
+     * access. Saves files /{dirPath}/{sensor type}_timeStamp.csv
      */
-    private File getRawSensorInfoFileWriter(Context context, String sensorType,
-            String dirPath) {
+    private File getRawSensorInfoFileWriter(
+            Context context, String sensorType,
+            String dirPath, String timeStamp
+    ) {
         File directory = new File(context.getExternalFilesDir(null), dirPath);
         if (! directory.exists()){
             directory.mkdir();
         }
-        File saveFile = new File(directory, sensorType + "_" + dirPath);
+        File saveFile = new File(
+                directory, sensorType + "_" + timeStamp + ".csv"
+        );
         Log.d(TAG, "save to: " + saveFile.getAbsolutePath());
         return saveFile;
     }
@@ -111,11 +114,10 @@ public class RawSensorInfo implements SensorEventListener {
         return rawSensorInfoWriter;
     }
 
-    public boolean startRecording(Context context, String dirPath) {
+    public boolean startRecording(Context context, String dirPath, String timeStamp) {
         try {
-            mAccelFile = getRawSensorInfoFileWriter(context, SENSOR_TYPE_ACCEL, dirPath);
-            mGyroFile = getRawSensorInfoFileWriter(context, SENSOR_TYPE_GYRO, dirPath);
-
+            mAccelFile = getRawSensorInfoFileWriter(context, SENSOR_TYPE_ACCEL, dirPath, timeStamp);
+            mGyroFile = getRawSensorInfoFileWriter(context, SENSOR_TYPE_GYRO, dirPath, timeStamp);
 
             mGyroBufferedWriter = setupRawSensorInfoWriter(
                     context, SENSOR_TYPE_GYRO, mGyroFile
@@ -133,6 +135,8 @@ public class RawSensorInfo implements SensorEventListener {
     }
 
     public void stopRecording() {
+        mLastGyroPath = mGyroFile.getAbsolutePath();
+        mLastAccelPath = mAccelFile.getAbsolutePath();
         Log.d(TAG, "Close all files");
         if (mGyroBufferedWriter != null) {
             mGyroBufferedWriter.flush();
@@ -143,6 +147,10 @@ public class RawSensorInfo implements SensorEventListener {
             mAccelBufferedWriter.close();
         }
         mIsRecording = false;
+    }
+
+    public String getLastGyroPath() {
+        return mLastGyroPath;
     }
 
     public boolean isRecording() {

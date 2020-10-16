@@ -5,10 +5,12 @@ import android.provider.ContactsContract;
 import android.util.Log;
 import android.widget.Toast;
 
+import com.googleresearch.capturesync.Constants;
 import com.googleresearch.capturesync.GlobalClass;
 import com.googleresearch.capturesync.RawSensorInfo;
 
 import java.io.BufferedOutputStream;
+import java.io.DataInputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -19,6 +21,7 @@ import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -29,6 +32,7 @@ public class ImuTimeSync extends TimeSyncProtocol {
     private static final String TAG = "ImuTimeSync";
     private final ExecutorService mTimeSyncExecutor = Executors.newSingleThreadExecutor();
     private Context mContext;
+    private FileTransferUtils mFileUtils;
 
     @Override
     protected ExecutorService getTimeSyncExecutor() {
@@ -39,6 +43,7 @@ public class ImuTimeSync extends TimeSyncProtocol {
             Ticker localClock, DatagramSocket timeSyncSocket, int timeSyncPort, SoftwareSyncLeader leader, Context context) {
         super(localClock, timeSyncSocket, timeSyncPort, leader);
         mContext = context;
+        mFileUtils = new FileTransferUtils(context);
     }
 
     @Override
@@ -46,7 +51,8 @@ public class ImuTimeSync extends TimeSyncProtocol {
         super.submitNewSyncRequest(clientAddress);
     }
 
-    /** Is executed on leader
+    /**
+     *  Is executed on leader
      *  smartphone, performs gyroSync
      *  algorithm and returns calculated offset
      * @param clientAddress
@@ -54,6 +60,9 @@ public class ImuTimeSync extends TimeSyncProtocol {
      */
     @Override
     protected TimeSyncOffsetResponse doTimeSync(InetAddress clientAddress) {
+        // TODO: specify Dialog in ui, then call OnResponse here and perform sync
+        // TODO: add sound of start and stop recording
+
         byte[] bufferStart = ByteBuffer.allocate(SyncConstants.RPC_BUFFER_SIZE).putInt(
                 SyncConstants.METHOD_MSG_START_RECORDING
         ).array();
@@ -63,13 +72,15 @@ public class ImuTimeSync extends TimeSyncProtocol {
 
         DatagramPacket packetStart = new DatagramPacket(bufferStart, bufferStart.length, clientAddress, mTimeSyncPort);
         DatagramPacket packetStop = new DatagramPacket(bufferStop, bufferStop.length, clientAddress, mTimeSyncPort);
-        try (ServerSocket recServerSocket = new ServerSocket(mTimeSyncPort)) {
+        try (
+                ServerSocket recServerSocket = new ServerSocket(mTimeSyncPort)
+        ) {
             mTimeSyncSocket.send(packetStart);
             Log.d(TAG, "Sent packet start recording to client, recording...");
             RawSensorInfo recorder = new RawSensorInfo(mContext);
             recorder.enableSensors(0, 0);
-            String timeStamp = new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss").format(new Date());
-            recorder.startRecording(mContext, timeStamp);
+            String timeStamp = new SimpleDateFormat("dd.MM.HH.mm.ss").format(new Date());
+            recorder.startRecording(mContext, Constants.LOCAL_SENSOR_DIR, timeStamp);
             // Recording process
             Log.d(TAG, "Started recording");
             Thread.sleep(SyncConstants.SENSOR_REC_PERIOD_MILLIS);
@@ -79,45 +90,80 @@ public class ImuTimeSync extends TimeSyncProtocol {
             mTimeSyncSocket.send(packetStop);
             Log.d(TAG, "Sent stop recording packet to client");
 
+
             // Accept file
             Log.d(TAG, "Connecting to Client...");
             Socket receiveSocket = recServerSocket.accept();
             Log.d(TAG, "Connected to Client...");
-            // Getting file details
+            File gyroFileClient = mFileUtils.receiveFile("gyro_client.csv", receiveSocket);
 
-            Log.d(TAG, "Getting details from Client...");
-            ObjectInputStream getDetails = new ObjectInputStream(receiveSocket.getInputStream());
-            FileDetails details = (FileDetails) getDetails.readObject();
-            Log.d(TAG, "Now receiving file...");
-            // Storing file name and sizes
-
-            String fileName = details.getName() + ".csv";
-            Log.d(TAG, "File Name : " + fileName);
-            byte data[] = new byte[2048];
-            FileOutputStream fileOut = new FileOutputStream(
-                    new File(mContext.getExternalFilesDir(null), fileName)
+            // Send files to PC
+            File gyroFileLeader = new File(recorder.getLastGyroPath());
+            return doGyroSyncOnServer(
+                    gyroFileClient, gyroFileLeader
             );
-            InputStream fileIn = receiveSocket.getInputStream();
-            BufferedOutputStream fileBuffer = new BufferedOutputStream(fileOut);
-            int count;
-            int sum = 0;
-            while ((count = fileIn.read(data)) > 0) {
-                sum += count;
-                fileBuffer.write(data, 0, count);
-                Log.d(TAG, "Data received : " + sum);
-                fileBuffer.flush();
-            }
-            Log.d(TAG, "File Received...");
-            fileBuffer.close();
-            fileIn.close();
-
-            return TimeSyncOffsetResponse.create(42, 42, true);
-
-
-        } catch (IOException | ClassNotFoundException | InterruptedException e) {
+        } catch (IOException | InterruptedException e) {
             e.printStackTrace();
             return TimeSyncOffsetResponse.create(0, 0, false);
         } // TODO: autogenerated
-
     }
+
+    /**
+     *
+     * @return
+     */
+    private TimeSyncOffsetResponse doGyroSyncOnServer(
+            File gyroFileClient,
+            File gyroFileLeader
+    ) {
+        try {
+            // Send client file to PC
+            mFileUtils.sendFile(
+                    gyroFileClient, new Socket(
+                            InetAddress.getByName(Constants.PC_SERVER_IP),
+                            mTimeSyncPort
+                    )
+            );
+
+            // Send leader file to PC
+            mFileUtils.sendFile(
+                    gyroFileLeader, new Socket(
+                            InetAddress.getByName(Constants.PC_SERVER_IP),
+                            mTimeSyncPort
+                    )
+            );
+
+            try (
+                Socket sc = new Socket(
+                    InetAddress.getByName(Constants.PC_SERVER_IP),
+                    mTimeSyncPort
+                )
+            ) {
+                InputStream in = sc.getInputStream();
+                DataInputStream dataInputStream = new DataInputStream(in);
+                double offsetNs = dataInputStream.readDouble();
+                if (offsetNs > 0) {
+                    //double offsetNs = offsetData.
+                    Log.d(TAG, "Success! Received offset from server: " + offsetNs / 1e9 + " seconds");
+                    return TimeSyncOffsetResponse.create((long) offsetNs, 0, true);
+                } else {
+                    Log.d(TAG, "Couldn't get offset from server");
+                    return TimeSyncOffsetResponse.create(0, 0, false);
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+                Log.e(TAG, "Failed to receive offset from server");
+                return TimeSyncOffsetResponse.create(0, 0, false);
+            }
+        } catch (UnknownHostException e) {
+            e.printStackTrace();
+            Log.e(TAG, "Could not determine server host IP address");
+            return TimeSyncOffsetResponse.create(0, 0, false);
+        } catch (IOException e) {
+            e.printStackTrace();
+            Log.e(TAG, "Failed to compute offset on server");
+            return TimeSyncOffsetResponse.create(0, 0, false);
+        }
+    }
+
 }

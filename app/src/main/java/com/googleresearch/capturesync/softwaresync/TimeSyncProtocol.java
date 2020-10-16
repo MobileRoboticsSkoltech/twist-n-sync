@@ -15,10 +15,6 @@ abstract class TimeSyncProtocol implements AutoCloseable {
     private static final String TAG = "TimeSyncProtocol";
 
     /** Sequentially manages time synchronization of clients. */
-
-    // TODO: experiment with n threads and take that value to constants
-    //private final ExecutorService mTimeSyncExecutor = Executors.newFixedThreadPool(1);
-
     protected abstract ExecutorService getTimeSyncExecutor();
 
     protected final DatagramSocket mTimeSyncSocket;

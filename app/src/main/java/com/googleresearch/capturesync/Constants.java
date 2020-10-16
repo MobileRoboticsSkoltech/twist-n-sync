@@ -21,7 +21,11 @@ import com.googleresearch.capturesync.softwaresync.TimeUtils;
 
 /** Constants including what type of images to save and the save directory. */
 public final class Constants {
+  // TODO: add PC server IP
+  public static final String PC_SERVER_IP = "192.168.1.61";
   public static final String LEADER_IP = "192.168.1.107";
+
+  public static final String LOCAL_SENSOR_DIR = "local_sensors";
 
   public static final int DEFAULT_CAMERA_FACING = CameraCharacteristics.LENS_FACING_BACK;
 
