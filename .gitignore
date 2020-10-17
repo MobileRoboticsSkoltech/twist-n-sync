@@ -97,3 +97,9 @@ gradle/wrapper/gradle-wrapper.properties
 gradlew
 
 gradlew.bat
+
+*.ipynb
+
+sync-server/__pycache__/
+
+*.csv
