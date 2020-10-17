@@ -214,7 +214,7 @@ t2. The leader receives this at timestamp t3, and using these 4 times estimates
 the clock offset between the two devices, accounting for network latency.
 
 This result is encapsulated in
-[`SntpOffsetResponse.java`](app/src/main/java/com/googleresearch/capturesync/softwaresync/SntpOffsetResponse.java)
+[`SntpOffsetResponse.java`](app/src/main/java/com/googleresearch/capturesync/softwaresync/TimeSyncOffsetResponse.java)
 which also contains the hard upper bound timing error on the offset. In practice
 the timing error is an order of magnitude smaller since wifi network
 communication is mostly symmetric with the bias accounted for by choosing the

@@ -90,14 +90,6 @@ lint/tmp/
 
 .idea/
 
-gradle/wrapper/gradle-wrapper.jar
-
-gradle/wrapper/gradle-wrapper.properties
-
-gradlew
-
-gradlew.bat
-
 *.ipynb
 
 sync-server/__pycache__/

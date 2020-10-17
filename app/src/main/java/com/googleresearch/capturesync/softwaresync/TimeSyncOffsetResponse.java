@@ -16,17 +16,17 @@
 
 package com.googleresearch.capturesync.softwaresync;
 
-/** AutoValue class for SNTP offsetNs, synchronization accuracy and status. */
-public final class SntpOffsetResponse {
+/** AutoValue class for time sync offsetNs, synchronization accuracy and status. */
+public final class TimeSyncOffsetResponse {
   private final long offsetNs;
   private final long syncAccuracyNs;
   private final boolean status;
 
-  static SntpOffsetResponse create(long offset, long syncAccuracy, boolean status) {
-    return new SntpOffsetResponse(offset, syncAccuracy, status);
+  static TimeSyncOffsetResponse create(long offset, long syncAccuracy, boolean status) {
+    return new TimeSyncOffsetResponse(offset, syncAccuracy, status);
   }
 
-  private SntpOffsetResponse(long offsetNs, long syncAccuracyNs, boolean status) {
+  private TimeSyncOffsetResponse(long offsetNs, long syncAccuracyNs, boolean status) {
     this.offsetNs = offsetNs;
     this.syncAccuracyNs = syncAccuracyNs;
     this.status = status;

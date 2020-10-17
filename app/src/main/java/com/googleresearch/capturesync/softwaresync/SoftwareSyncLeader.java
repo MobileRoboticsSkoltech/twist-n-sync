@@ -17,6 +17,9 @@
 package com.googleresearch.capturesync.softwaresync;
 
 import android.util.Log;
+
+import com.googleresearch.capturesync.GlobalClass;
+
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -57,7 +60,7 @@ public class SoftwareSyncLeader extends SoftwareSyncBase {
   private final ExecutorService rpcMessageExecutor = Executors.newSingleThreadExecutor();
 
   /** Manages SNTP synchronization of clients. */
-  private final SimpleNetworkTimeProtocol sntp;
+  private final TimeSyncProtocol sntp;
 
   public SoftwareSyncLeader(
       String name, long initialTime, InetAddress address, Map<Integer, RpcCallback> rpcCallbacks) {
@@ -101,7 +104,7 @@ public class SoftwareSyncLeader extends SoftwareSyncBase {
     addPublicRpcCallbacks(rpcCallbacks);
 
     // Set up SNTP instance for synchronizing with clients.
-    sntp = new SimpleNetworkTimeProtocol(localClock, sntpSocket, SyncConstants.SNTP_PORT, this);
+    sntp = new ImuTimeSync(localClock, sntpSocket, SyncConstants.SNTP_PORT, this, GlobalClass.context);
 
     // Start periodically checking for stale clients and removing as needed.
     staleClientChecker.scheduleAtFixedRate(
@@ -167,7 +170,7 @@ public class SoftwareSyncLeader extends SoftwareSyncBase {
   }
 
   /** Finds and updates client sync accuracy within list. */
-  void updateClientWithOffsetResponse(InetAddress clientAddress, SntpOffsetResponse response) {
+  void updateClientWithOffsetResponse(InetAddress clientAddress, TimeSyncOffsetResponse response) {
     // Update client sync accuracy locally.
     synchronized (clientsLock) {
       if (!clients.containsKey(clientAddress)) {
