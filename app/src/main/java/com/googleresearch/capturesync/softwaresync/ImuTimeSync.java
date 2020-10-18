@@ -3,21 +3,15 @@ package com.googleresearch.capturesync.softwaresync;
 import android.content.Context;
 import android.media.AudioManager;
 import android.media.ToneGenerator;
-import android.provider.ContactsContract;
 import android.util.Log;
-import android.widget.Toast;
 
 import com.googleresearch.capturesync.Constants;
-import com.googleresearch.capturesync.GlobalClass;
 import com.googleresearch.capturesync.RawSensorInfo;
 
-import java.io.BufferedOutputStream;
 import java.io.DataInputStream;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.ObjectInputStream;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
@@ -48,11 +42,6 @@ public class ImuTimeSync extends TimeSyncProtocol {
         mFileUtils = new FileTransferUtils(context);
     }
 
-    @Override
-    void submitNewSyncRequest(InetAddress clientAddress) {
-        super.submitNewSyncRequest(clientAddress);
-    }
-
     /**
      *  Is executed on leader
      *  smartphone, performs gyroSync
@@ -63,6 +52,7 @@ public class ImuTimeSync extends TimeSyncProtocol {
     @Override
     protected TimeSyncOffsetResponse doTimeSync(InetAddress clientAddress) {
         // TODO: specify Dialog in ui, then call OnResponse here and perform sync
+
         // TODO: move sound of start and stop recording to VIEW (callbacks?)
         ToneGenerator beep = new ToneGenerator(AudioManager.STREAM_ALARM, 100);
         byte[] bufferStart = ByteBuffer.allocate(SyncConstants.RPC_BUFFER_SIZE).putInt(

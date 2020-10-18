@@ -19,7 +19,9 @@ package com.googleresearch.capturesync;
 import android.Manifest.permission;
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
@@ -54,7 +56,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.googleresearch.capturesync.softwaresync.ClientInfo;
-import com.googleresearch.capturesync.softwaresync.SoftwareSyncClient;
 import com.googleresearch.capturesync.softwaresync.SoftwareSyncLeader;
 import com.googleresearch.capturesync.softwaresync.TimeUtils;
 import com.googleresearch.capturesync.softwaresync.phasealign.PhaseConfig;
@@ -374,11 +375,22 @@ public class MainActivity extends Activity {
               Log.d(TAG, "Starting time sync");
               SoftwareSyncLeader leader = ((SoftwareSyncLeader) softwareSyncController.softwareSync);
 
-              for (Map.Entry<InetAddress, ClientInfo> entry : leader.getClients().entrySet()) {
-                ClientInfo client = entry.getValue();
-                // Submit client sync request
-                leader.newSyncRequestForClient(client.address());
-              }
+              new AlertDialog.Builder(this)
+                      .setTitle("Starting sync")
+                      .setMessage(
+                          "Fix the smartphones, start shaking them after the beep, then wait for recording to end"
+                      )
+                      .setCancelable(false)
+                      .setPositiveButton("Got it", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialogInterface, int i) {
+                          // Submit sync requests
+                          for (Map.Entry<InetAddress, ClientInfo> entry : leader.getClients().entrySet()) {
+                            ClientInfo client = entry.getValue();
+                            leader.newSyncRequestForClient(client.address());
+                          }
+                        }
+                      }).show();
             });
 
       exposureSeekBar.setOnSeekBarChangeListener(
@@ -443,6 +455,7 @@ public class MainActivity extends Activity {
       phaseAlignButton.setVisibility(View.INVISIBLE);
       exposureSeekBar.setVisibility(View.INVISIBLE);
       sensitivitySeekBar.setVisibility(View.INVISIBLE);
+      startSyncButton.setVisibility(View.INVISIBLE);
 
       captureStillButton.setOnClickListener(null);
       phaseAlignButton.setOnClickListener(null);

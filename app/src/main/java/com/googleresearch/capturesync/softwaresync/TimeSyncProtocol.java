@@ -2,13 +2,11 @@ package com.googleresearch.capturesync.softwaresync;
 
 import android.util.Log;
 
-import java.io.IOException;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 abstract class TimeSyncProtocol implements AutoCloseable {
@@ -55,42 +53,44 @@ abstract class TimeSyncProtocol implements AutoCloseable {
 
         // Add time sync request to executor queue.
         this.getTimeSyncExecutor().submit(
-                () -> {
-                    // If the client no longer exists, no need to synchronize.
-                    if (!mLeader.getClients().containsKey(clientAddress)) {
-                        Log.w(TAG, "Client was removed, exiting time sync routine.");
-                        return true;
-                    }
+                () -> preTimeSyncExecution(clientAddress));
+    }
 
-                    Log.d(TAG, "Starting sync with client" + clientAddress);
-                    // Calculate clock offsetNs between client and leader using a time sync protocol
-                    TimeSyncOffsetResponse response = doTimeSync(clientAddress);
+    protected boolean preTimeSyncExecution(InetAddress clientAddress) {
+        // If the client no longer exists, no need to synchronize.
+        if (!mLeader.getClients().containsKey(clientAddress)) {
+            Log.w(TAG, "Client was removed, exiting time sync routine.");
+            return true;
+        }
 
-                    if (response.status()) {
-                        // Apply local offsetNs to bestOffset so everyone has the same offsetNs.
-                        final long alignedOffset = response.offsetNs() + mLeader.getLeaderFromLocalNs();
+        Log.d(TAG, "Starting sync with client" + clientAddress);
+        // Calculate clock offsetNs between client and leader using a time sync protocol
+        TimeSyncOffsetResponse response = doTimeSync(clientAddress);
 
-                        // Update client sync accuracy locally.
-                        mLeader.updateClientWithOffsetResponse(clientAddress, response);
+        if (response.status()) {
+            // Apply local offsetNs to bestOffset so everyone has the same offsetNs.
+            final long alignedOffset = response.offsetNs() + mLeader.getLeaderFromLocalNs();
 
-                        // Send an RPC to update the offsetNs on the client.
-                        Log.d(TAG, "Sending offsetNs update to " + clientAddress + ": " + alignedOffset);
-                        mLeader.sendRpc(
-                                SyncConstants.METHOD_OFFSET_UPDATE, String.valueOf(alignedOffset), clientAddress);
-                    }
+            // Update client sync accuracy locally.
+            mLeader.updateClientWithOffsetResponse(clientAddress, response);
 
-                    // Pop client from the queue regardless of success state. Clients  will be added back in
-                    // the queue as needed based on their state at the next heartbeat.
-                    synchronized (mClientSyncTasksLock) {
-                        mClientSyncTasks.remove(clientAddress);
-                    }
+            // Send an RPC to update the offsetNs on the client.
+            Log.d(TAG, "Sending offsetNs update to " + clientAddress + ": " + alignedOffset);
+            mLeader.sendRpc(
+                    SyncConstants.METHOD_OFFSET_UPDATE, String.valueOf(alignedOffset), clientAddress);
+        }
 
-                    if (response.status()) {
-                        mLeader.onRpc(SyncConstants.METHOD_MSG_OFFSET_UPDATED, clientAddress.toString());
-                    }
+        // Pop client from the queue regardless of success state. Clients  will be added back in
+        // the queue as needed based on their state at the next heartbeat.
+        synchronized (mClientSyncTasksLock) {
+            mClientSyncTasks.remove(clientAddress);
+        }
 
-                    return response.status();
-                });
+        if (response.status()) {
+            mLeader.onRpc(SyncConstants.METHOD_MSG_OFFSET_UPDATED, clientAddress.toString());
+        }
+
+        return response.status();
     }
 
     protected abstract TimeSyncOffsetResponse doTimeSync(InetAddress clientAddress);
