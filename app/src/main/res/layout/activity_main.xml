@@ -64,6 +64,12 @@
                 android:layout_height="wrap_content"
                 android:text="@string/action_phase_align"/>
 
+            <Button
+                android:id="@+id/start_sync_button"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Start syncing"/>
+
             <TextView
                 android:id="@+id/phase"
                 android:layout_width="match_parent"

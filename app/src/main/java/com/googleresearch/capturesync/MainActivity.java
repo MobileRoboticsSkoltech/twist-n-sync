@@ -52,17 +52,23 @@ import android.widget.SeekBar;
 import android.widget.SeekBar.OnSeekBarChangeListener;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.googleresearch.capturesync.softwaresync.ClientInfo;
+import com.googleresearch.capturesync.softwaresync.SoftwareSyncClient;
 import com.googleresearch.capturesync.softwaresync.SoftwareSyncLeader;
 import com.googleresearch.capturesync.softwaresync.TimeUtils;
 import com.googleresearch.capturesync.softwaresync.phasealign.PhaseConfig;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.InetAddress;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -96,6 +102,7 @@ public class MainActivity extends Activity {
   // UI controls.
   private Button captureStillButton;
   private Button phaseAlignButton;
+  private Button startSyncButton;
   private SeekBar exposureSeekBar;
   private SeekBar sensitivitySeekBar;
   private TextView statusTextView;
@@ -361,6 +368,18 @@ public class MainActivity extends Activity {
             ((SoftwareSyncLeader) softwareSyncController.softwareSync)
                 .broadcastRpc(SoftwareSyncController.METHOD_DO_PHASE_ALIGN, "");
           });
+
+      startSyncButton.setOnClickListener(
+            view -> {
+              Log.d(TAG, "Starting time sync");
+              SoftwareSyncLeader leader = ((SoftwareSyncLeader) softwareSyncController.softwareSync);
+
+              for (Map.Entry<InetAddress, ClientInfo> entry : leader.getClients().entrySet()) {
+                ClientInfo client = entry.getValue();
+                // Submit client sync request
+                leader.newSyncRequestForClient(client.address());
+              }
+            });
 
       exposureSeekBar.setOnSeekBarChangeListener(
           new OnSeekBarChangeListener() {
@@ -640,6 +659,7 @@ public class MainActivity extends Activity {
     phaseAlignButton = findViewById(R.id.phase_align_button);
     exposureSeekBar = findViewById(R.id.exposure_seekbar);
     sensitivitySeekBar = findViewById(R.id.sensitivity_seekbar);
+    startSyncButton = findViewById(R.id.start_sync_button);
     sensorExposureTextView.setText("Exposure: " + prettyExposureValue(currentSensorExposureTimeNs));
     sensorSensitivityTextView.setText("Sensitivity: " + currentSensorSensitivity);
   }

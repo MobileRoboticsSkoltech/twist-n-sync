@@ -21,6 +21,7 @@ import android.util.Log;
 import com.googleresearch.capturesync.GlobalClass;
 
 import java.io.IOException;
+import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.Arrays;
@@ -60,7 +61,7 @@ public class SoftwareSyncLeader extends SoftwareSyncBase {
   private final ExecutorService rpcMessageExecutor = Executors.newSingleThreadExecutor();
 
   /** Manages SNTP synchronization of clients. */
-  private final TimeSyncProtocol sntp;
+  private final TimeSyncProtocol imuTimeSync;
 
   public SoftwareSyncLeader(
       String name, long initialTime, InetAddress address, Map<Integer, RpcCallback> rpcCallbacks) {
@@ -103,12 +104,16 @@ public class SoftwareSyncLeader extends SoftwareSyncBase {
     // Add callbacks passed by user.
     addPublicRpcCallbacks(rpcCallbacks);
 
-    // Set up SNTP instance for synchronizing with clients.
-    sntp = new ImuTimeSync(localClock, sntpSocket, SyncConstants.SNTP_PORT, this, GlobalClass.context);
+    // Set up time sync instance for synchronizing with clients.
+    imuTimeSync = new ImuTimeSync(localClock, sntpSocket, SyncConstants.SNTP_PORT, this, GlobalClass.context);
 
     // Start periodically checking for stale clients and removing as needed.
     staleClientChecker.scheduleAtFixedRate(
         this::removeStaleClients, 0, SyncConstants.STALE_TIME_NS, TimeUnit.NANOSECONDS);
+  }
+
+  public void newSyncRequestForClient(InetAddress clientAddress) {
+    imuTimeSync.submitNewSyncRequest(clientAddress);
   }
 
   public Map<InetAddress, ClientInfo> getClients() {
@@ -227,7 +232,7 @@ public class SoftwareSyncLeader extends SoftwareSyncBase {
 
   @Override
   public void close() throws IOException {
-    sntp.close();
+    imuTimeSync.close();
     staleClientChecker.shutdown();
     try {
       // Wait up to 0.5 seconds for this to close.
@@ -241,7 +246,7 @@ public class SoftwareSyncLeader extends SoftwareSyncBase {
 
   /**
    * Process a heartbeat rpc call from a client by responding with a heartbeat acknowledge, adding
-   * or updating the client in the tracked clients list, and submitting a new SNTP sync request if
+   * or updating the client in the tracked clients list, and submitting a new sync request if
    * the client state is not yet synchronized.
    *
    * @param payload format of "ClientName,ClientAddress,ClientState"
@@ -267,8 +272,11 @@ public class SoftwareSyncLeader extends SoftwareSyncBase {
     addOrUpdateClient(clientName, clientAddress);
 
     // If the client state is not yet synchronized, add it to the SNTP queue.
-    if (!clientSyncState) {
+    // (Not needed for now, sync start should be done with the button!)
+
+    /*if (!clientSyncState) {
       sntp.submitNewSyncRequest(clientAddress);
     }
+     */
   }
 }
