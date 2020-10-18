@@ -19,7 +19,7 @@ package com.googleresearch.capturesync.softwaresync;
 import android.content.Context;
 import android.util.Log;
 
-import com.googleresearch.capturesync.GlobalClass;
+import com.googleresearch.capturesync.MainActivity;
 
 import java.io.IOException;
 import java.net.InetAddress;
@@ -73,8 +73,10 @@ public class SoftwareSyncClient extends SoftwareSyncBase {
       String name,
       InetAddress address,
       InetAddress leaderAddress,
-      Map<Integer, RpcCallback> rpcCallbacks) {
-    this(name, new SystemTicker(), address, leaderAddress, rpcCallbacks);
+      Map<Integer, RpcCallback> rpcCallbacks,
+      MainActivity context
+    ) {
+    this(name, new SystemTicker(), address, leaderAddress, rpcCallbacks, context);
   }
 
   @SuppressWarnings("FutureReturnValueIgnored")
@@ -83,8 +85,10 @@ public class SoftwareSyncClient extends SoftwareSyncBase {
       Ticker localClock,
       InetAddress address,
       InetAddress leaderAddress,
-      Map<Integer, RpcCallback> rpcCallbacks) {
-    super(name, localClock, address, leaderAddress);
+      Map<Integer, RpcCallback> rpcCallbacks,
+      MainActivity context
+  ) {
+    super(name, localClock, address, leaderAddress, context);
 
     // Add client-specific RPC callbacks.
     rpcMap.put(
@@ -202,7 +206,7 @@ public class SoftwareSyncClient extends SoftwareSyncBase {
   private void maybeStartSntpThread() {
     if (imuSyncThread == null || !imuSyncThread.isAlive()) {
       // Set up SNTP thread.
-      imuSyncThread = new ImuTimeSyncListener(localClock, sntpSocket, sntpPort, GlobalClass.context);
+      imuSyncThread = new ImuTimeSyncListener(localClock, sntpSocket, sntpPort, getContext());
       imuSyncThread.start();
     }
   }

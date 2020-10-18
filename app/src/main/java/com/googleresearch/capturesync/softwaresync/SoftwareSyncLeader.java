@@ -18,10 +18,9 @@ package com.googleresearch.capturesync.softwaresync;
 
 import android.util.Log;
 
-import com.googleresearch.capturesync.GlobalClass;
+import com.googleresearch.capturesync.MainActivity;
 
 import java.io.IOException;
-import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.Arrays;
@@ -64,8 +63,8 @@ public class SoftwareSyncLeader extends SoftwareSyncBase {
   private final TimeSyncProtocol imuTimeSync;
 
   public SoftwareSyncLeader(
-      String name, long initialTime, InetAddress address, Map<Integer, RpcCallback> rpcCallbacks) {
-    this(name, new SystemTicker(), initialTime, address, rpcCallbacks);
+      String name, long initialTime, InetAddress address, Map<Integer, RpcCallback> rpcCallbacks, MainActivity context) {
+    this(name, new SystemTicker(), initialTime, address, rpcCallbacks, context);
   }
 
   @SuppressWarnings("FutureReturnValueIgnored")
@@ -74,9 +73,11 @@ public class SoftwareSyncLeader extends SoftwareSyncBase {
       Ticker localClock,
       long initialTime,
       InetAddress address,
-      Map<Integer, RpcCallback> rpcCallbacks) {
+      Map<Integer, RpcCallback> rpcCallbacks,
+      MainActivity context
+  ) {
     // Note: Leader address is required to be the same as local address.
-    super(name, localClock, address, address);
+    super(name, localClock, address, address, context);
 
     // Set up the offsetNs so that the leader synchronized time (via getLeaderTimeNs()) on all
     // devices
@@ -105,7 +106,7 @@ public class SoftwareSyncLeader extends SoftwareSyncBase {
     addPublicRpcCallbacks(rpcCallbacks);
 
     // Set up time sync instance for synchronizing with clients.
-    imuTimeSync = new ImuTimeSync(localClock, sntpSocket, SyncConstants.SNTP_PORT, this, GlobalClass.context);
+    imuTimeSync = new ImuTimeSync(localClock, sntpSocket, SyncConstants.SNTP_PORT, this, getContext());
 
     // Start periodically checking for stale clients and removing as needed.
     staleClientChecker.scheduleAtFixedRate(
