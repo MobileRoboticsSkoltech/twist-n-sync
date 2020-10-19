@@ -26,6 +26,7 @@ public class ImuTimeSyncListener extends Thread {
     private boolean running;
     private final DatagramSocket imuTimeSyncSocket;
     private final int imuTimeSyncPort;
+    private final Ticker localClock;
     private final Context mContext;
     private final FileTransferUtils mFileUtils;
 
