@@ -44,7 +44,7 @@ def main():
                 print(f"Received gyro file {i}")
                 gyro.append(pd.read_csv(path, names=['x', 'y', 'z', 't']))
 
-            # gyro1 - leader, gyro2 - client 
+            # gyro2 - leader, gyro1 - client 
             gyro1_values = gyro[0].drop("t", axis=1)
             gyro2_values = gyro[1].drop("t", axis=1)
 
