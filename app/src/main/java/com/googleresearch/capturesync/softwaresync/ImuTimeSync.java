@@ -3,7 +3,6 @@ package com.googleresearch.capturesync.softwaresync;
 import android.content.Context;
 import android.media.AudioManager;
 import android.media.ToneGenerator;
-import android.provider.ContactsContract;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -30,7 +29,7 @@ import java.util.concurrent.Executors;
 public class ImuTimeSync extends TimeSyncProtocol {
     private static final String TAG = "ImuTimeSync";
     private final ExecutorService mTimeSyncExecutor = Executors.newSingleThreadExecutor();
-    private final Context mContext;
+    private final MainActivity mContext;
     private final FileTransferUtils mFileUtils;
 
     @Override
@@ -54,7 +53,6 @@ public class ImuTimeSync extends TimeSyncProtocol {
      */
     @Override
     protected TimeSyncOffsetResponse doTimeSync(InetAddress clientAddress) {
-        // TODO: specify Dialog in ui, then call OnResponse here and perform sync
         // TODO: move sound of start and stop recording to VIEW (callbacks?)
         ToneGenerator beep = new ToneGenerator(AudioManager.STREAM_ALARM, 100);
         byte[] bufferStart = ByteBuffer.allocate(SyncConstants.RPC_BUFFER_SIZE).putInt(
@@ -83,7 +81,6 @@ public class ImuTimeSync extends TimeSyncProtocol {
             recorder.stopRecording();
             recorder.disableSensors();
             Log.d(TAG, "Stopped recording");
-            mTimeSyncSocket.send(packetStop);
             beep.startTone(ToneGenerator.TONE_CDMA_PIP,150);
 
             Log.d(TAG, "Sent stop recording packet to client");
@@ -105,6 +102,10 @@ public class ImuTimeSync extends TimeSyncProtocol {
             return TimeSyncOffsetResponse.create(0, 0, false);
         } finally {
             beep.release();
+            if (recorder.isRecording()) {
+                recorder.stopRecording();
+                recorder.disableSensors();
+            }
         }
     }
 
@@ -145,25 +146,22 @@ public class ImuTimeSync extends TimeSyncProtocol {
         }
 
         try (
-            Socket sc = new Socket(
-                InetAddress.getByName(Constants.PC_SERVER_IP),
-                mTimeSyncPort
-            )
+                Socket sc = new Socket(
+                        InetAddress.getByName(Constants.PC_SERVER_IP),
+                        mTimeSyncPort
+                )
         ) {
             InputStream in = sc.getInputStream();
             DataInputStream dataInputStream = new DataInputStream(in);
             double offsetNs = dataInputStream.readDouble();
-            if (offsetNs > 0) {
-                //double offsetNs = offsetData.
-                Log.d(TAG, "Success! Received offset from server: " + offsetNs / 1e9 + " seconds");
-                // TODO: modify response with more error values and remove sync accuracy logic
-                return TimeSyncOffsetResponse.create((long) offsetNs, -1, true);
-            } else {
-                Log.d(TAG, "Couldn't get offset from server");
-                return TimeSyncOffsetResponse.create(0, 0, false);
-            }
+            showMessageOnUi("Sync successful: Received offset from server: " + offsetNs / 1e9 + " seconds");
+            Log.d(TAG, "Success! Received offset from server: " + offsetNs / 1e9 + " seconds");
+            // TODO: modify response with more error values and remove sync accuracy logic
+            return TimeSyncOffsetResponse.create((long) offsetNs, 0, true);
+
         } catch (IOException e) {
             e.printStackTrace();
+            showMessageOnUi("Sync failed: couldn't receive offset from server");
             Log.e(TAG, "Failed to receive offset from server");
             return TimeSyncOffsetResponse.create(0, 0, false);
         }
