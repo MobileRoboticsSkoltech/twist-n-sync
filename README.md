@@ -1,8 +1,13 @@
 # Gyroscope-Based Time Synchronization of Distributed Cameras
 
+
 We use a modified version of [libsoftwaresync](https://github.com/google-research/libsoftwaresync) to verify sync accuracy by taking pictures on two devices with minimal delay. You can learn more about phase alignment implementation, capture details in [libsoftwaresync](https://github.com/google-research/libsoftwaresync) or in this paper:
 [Wireless Software Synchronization of Multiple Distributed Cameras](https://arxiv.org/abs/1812.09366).
 _Sameer Ansari, Neal Wadhwa, Rahul Garg, Jiawen Chen_, ICCP 2019.
+
+## Warning!! this is a development branch with camera functionality disabled (to test on smartphones without Camera2API support).
+
+For now, use version provided in ```imusync_server_wcam``` branch.
 
 ### Our main contribution to the app
 
