@@ -26,10 +26,11 @@ _Sameer Ansari, Neal Wadhwa, Rahul Garg, Jiawen Chen_, ICCP 2019.
     missing file called gradle-wrapper.properties. Click ok to recreate the
     Gradle wrapper.
 4.  Modify the following values in ```Constants.java```: ```PC_SERVER_IP``` - IP of gyro sync server, can be obtained from the script output or with ifconfig, ```LEADER_IP``` - IP of leader smartphone.
-5.  Plug in your smartphone. You will need to enable USB debugging. See
+5.  Change ```periodNs``` value in ```res/raw/default_phaseconfig.json``` to the image capturing period of your smartphone in nanoseconds. For now, this value should obtained empirically as a mean period between frames.
+6.  Plug in your smartphone. You will need to enable USB debugging. See
     https://developer.android.com/studio/debug/dev-options for further
     instructions.
-6.  Go to the "Run" menu at the top and click "Run 'app'" to compile and install
+7.  Go to the "Run" menu at the top and click "Run 'app'" to compile and install
     the app.
 
 Note: By default, the app will likely start in client mode, with no UI options.
@@ -38,7 +39,7 @@ Note: By default, the app will likely start in client mode, with no UI options.
 ### App basic usage
 
 1. User sets up all devices on the same WiFi network.
-2. User starts app on all devices, uses exposure sliders, presses the ```Start Syncing``` button on leader device. After that, user is forced to fix devices and shake them during recording (recording start and end are marked by beep sounds on leader smartphone).
+2. User starts app on all devices, uses exposure sliders, presses the ```Start Syncing``` button on leader device. After that, user is forced to fix devices and shake them during recording (recording start and end are marked by beep sounds on leader smartphone). Sync result is displayed shortly after the signal as a Toast on the leader device.
 3. Then user presses ```Phase Align``` button on the leader device.
 3. User presses capture button on the leader device to collect captures.
 4. If JPEG is enabled (default) the user can verify captures by going to the Pictures photo directory on their phone through Google Photos or similar.
