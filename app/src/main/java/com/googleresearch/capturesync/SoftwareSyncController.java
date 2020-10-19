@@ -96,6 +96,7 @@ public class SoftwareSyncController implements Closeable {
       NetworkHelpers networkHelper = new NetworkHelpers(wifiManager);
       localAddress = NetworkHelpers.getIPAddress();
       //leaderAddress = networkHelper.getHotspotServerAddress();
+      // To use when leader is not a hotspot device:
       leaderAddress = InetAddress.getByName(Constants.LEADER_IP);
 
       // Note: This is a brittle way of checking leadership that may not work on all devices.
@@ -170,7 +171,7 @@ public class SoftwareSyncController implements Closeable {
       leaderRpcs.put(SyncConstants.METHOD_MSG_REMOVED_CLIENT, payload -> updateClientsUI());
       leaderRpcs.put(SyncConstants.METHOD_MSG_SYNCING, payload -> updateClientsUI());
       leaderRpcs.put(SyncConstants.METHOD_MSG_OFFSET_UPDATED, payload -> updateClientsUI());
-      softwareSync = new SoftwareSyncLeader(name, initTimeNs, localAddress, leaderRpcs);
+      softwareSync = new SoftwareSyncLeader(name, initTimeNs, localAddress, leaderRpcs, context);
     } else {
       // Client.
 
@@ -194,7 +195,7 @@ public class SoftwareSyncController implements Closeable {
                           String.format(
                               "Client %s\n-Synced to Leader %s",
                               softwareSync.getName(), softwareSync.getLeaderAddress()))));
-      softwareSync = new SoftwareSyncClient(name, localAddress, leaderAddress, clientRpcs);
+      softwareSync = new SoftwareSyncClient(name, localAddress, leaderAddress, clientRpcs, context);
     }
 
     if (isLeader) {
@@ -227,13 +228,7 @@ public class SoftwareSyncController implements Closeable {
               String.format("Leader %s: %d clients.\n", softwareSync.getName(), clientCount));
           for (Entry<InetAddress, ClientInfo> entry : leader.getClients().entrySet()) {
             ClientInfo client = entry.getValue();
-            if (client.syncAccuracy() == 0) {
-              msg.append(String.format("-Client %s: syncing...\n", client.name()));
-            } else {
-              msg.append(
-                  String.format(
-                      "-Client %s: %.2f ms sync\n", client.name(), client.syncAccuracy() / 1e6));
-            }
+            msg.append(String.format("-Client %s: ready to sync\n", client.name()));
           }
           statusView.setText(msg.toString());
         });

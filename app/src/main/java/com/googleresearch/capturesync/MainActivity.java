@@ -19,7 +19,9 @@ package com.googleresearch.capturesync;
 import android.Manifest.permission;
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
@@ -436,6 +438,7 @@ public class MainActivity extends Activity {
       phaseAlignButton.setVisibility(View.INVISIBLE);
       exposureSeekBar.setVisibility(View.INVISIBLE);
       sensitivitySeekBar.setVisibility(View.INVISIBLE);
+      startSyncButton.setVisibility(View.INVISIBLE);
 
       captureStillButton.setOnClickListener(null);
       phaseAlignButton.setOnClickListener(null);
