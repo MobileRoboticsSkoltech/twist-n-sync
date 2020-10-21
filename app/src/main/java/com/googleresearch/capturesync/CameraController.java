@@ -30,10 +30,14 @@ import android.view.Surface;
 import com.googleresearch.capturesync.ImageMetadataSynchronizer.CaptureRequestTag;
 import com.googleresearch.capturesync.softwaresync.TimeDomainConverter;
 import com.googleresearch.capturesync.softwaresync.TimeUtils;
+import com.googleresearch.capturesync.LogToFile;
+
+import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.TimeZone;
+
 
 /** High level camera controls. */
 public class CameraController {
@@ -58,6 +62,8 @@ public class CameraController {
   public CaptureCallback getSynchronizerCaptureCallback() {
     return imageMetadataSynchronizer.getCaptureCallback();
   }
+
+  private LogToFile mLogToFile;
 
   /**
    * Camera frames come in continuously and are thrown away. When a desired timestamp {@code
@@ -118,6 +124,11 @@ public class CameraController {
               imageBuffer));
     }
 
+    File logFile = new File(
+            context.getExternalFilesDir(null), "FRAME_LOGS.csv"
+    );
+    mLogToFile = new LogToFile(logFile);
+
     imageMetadataSynchronizer = new ImageMetadataSynchronizer(imageReaders, imageHandler);
     imageMetadataSynchronizer.registerCallback(
         output -> {
@@ -147,6 +158,16 @@ public class CameraController {
                   "onCaptureCompleted: timestampMs = %,.3f, frameDurationMs = %,.6f, phase ="
                       + " %,.3f, sequence id = %d",
                   timestampMs, frameDurationMs, phaseMs, sequenceId));
+          // Frame logs for analysis
+          //  format: {local timestamp nanos},{sync timestamp nanos},{should save (TRUE/FALSE)}
+          mLogToFile.appendLog(
+                  (double) result.get(CaptureResult.SENSOR_FRAME_DURATION)
+                  + ","
+                  + synchronizedTimestampNs
+                  + ","
+                  + shouldSaveFrame(synchronizedTimestampNs),
+                  context
+          );
 
           if (shouldSaveFrame(synchronizedTimestampNs)) {
             Log.d(TAG, "Sync frame found! Committing and processing");
