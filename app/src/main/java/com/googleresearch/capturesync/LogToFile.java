@@ -7,6 +7,10 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 
+/**
+ * Simple file logging implementation,
+ * creates or appends to provided file
+ */
 public class LogToFile {
     public LogToFile(File logFile) {
         mLogFile = logFile;
@@ -16,14 +20,12 @@ public class LogToFile {
 
     public void appendLog(String text, Context context)
     {
-        try
-        {
-            BufferedWriter buf = new BufferedWriter(new FileWriter(mLogFile, true));
+        try(
+            BufferedWriter buf = new BufferedWriter(new FileWriter(mLogFile, true))
+        ) {
             buf.append(text);
             buf.newLine();
-            buf.close();
-        }
-        catch (IOException e)
+        } catch (IOException e)
         {
             // TODO Auto-generated catch
             e.printStackTrace();
