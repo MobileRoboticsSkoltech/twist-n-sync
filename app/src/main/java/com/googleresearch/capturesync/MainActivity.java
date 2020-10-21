@@ -535,7 +535,7 @@ public class MainActivity extends Activity {
       throw new IllegalStateException("Viewfinder unavailable!");
     }
     viewfinderResolution =
-        Collections.min(Arrays.asList(viewfinderOutputSizes), new CompareSizesByArea());
+        Collections.max(Arrays.asList(viewfinderOutputSizes), new CompareSizesByArea());
 
     /*Size[] rawOutputSizes = scm.getOutputSizes(ImageFormat.RAW10);
     if (rawOutputSizes != null) {
