@@ -29,10 +29,10 @@ public final class Constants {
   public static final String LEADER_IP = "192.168.1.107";
 
   /**
-   * Gyroscope sampling period in nanos
+   * Gyroscope sampling period in microseconds
    * TODO: Hz value representation
    */
-  public static final int GYRO_PERIOD_NS = 2_000;
+  public static final int GYRO_PERIOD_US = 2_000;
 
   /**
    * Determines whether to write logs with frame timestamps to disk

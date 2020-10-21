@@ -65,7 +65,7 @@ public class ImuTimeSyncListener extends Thread {
                     continue;
                 }
 
-                recorder.enableSensors(Constants.GYRO_PERIOD_NS);
+                recorder.enableSensors(Constants.GYRO_PERIOD_US);
                 String timeStamp = new SimpleDateFormat("dd.MM.HH.mm.ss").format(new Date());
                 recorder.startRecording(mContext, Constants.LOCAL_SENSOR_DIR, timeStamp);
                 // Recording process

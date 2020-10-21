@@ -69,7 +69,7 @@ public class ImuTimeSync extends TimeSyncProtocol {
             mTimeSyncSocket.send(packetStart);
             Log.d(TAG, "Sent packet start recording to client, recording...");
 
-            recorder.enableSensors(Constants.GYRO_PERIOD_NS);
+            recorder.enableSensors(Constants.GYRO_PERIOD_US);
             String timeStamp = new SimpleDateFormat("dd.MM.HH.mm.ss").format(new Date());
             recorder.startRecording(mContext, Constants.LOCAL_SENSOR_DIR, timeStamp);
             // Recording process

@@ -25,7 +25,7 @@ _Sameer Ansari, Neal Wadhwa, Rahul Garg, Jiawen Chen_, ICCP 2019.
 3.  There will be a pop-up with the title "Gradle Sync" complaining about a
     missing file called gradle-wrapper.properties. Click ok to recreate the
     Gradle wrapper.
-4.  Modify the following values in ```Constants.java```: ```PC_SERVER_IP``` - IP of gyro sync server, can be obtained from the script output or with ifconfig, ```LEADER_IP``` - IP of leader smartphone. You can also try changing gyro sampling period in ```GYRO_PERIOD_NS```
+4.  Modify the following values in ```Constants.java```: ```PC_SERVER_IP``` - IP of gyro sync server, can be obtained from the script output or with ifconfig, ```LEADER_IP``` - IP of leader smartphone. You can also try changing gyro sampling period in ```GYRO_PERIOD_US``` (value in microseconds)
 5.  Change ```periodNs``` value in ```res/raw/default_phaseconfig.json``` to the image capturing period of your smartphone in nanoseconds. For now, this value should obtained empirically as a mean period between frames.
 6.  Plug in your smartphone. You will need to enable USB debugging. See
     https://developer.android.com/studio/debug/dev-options for further
