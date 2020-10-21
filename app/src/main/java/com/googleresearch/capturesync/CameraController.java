@@ -125,7 +125,7 @@ public class CameraController {
     }
 
     File logFile = new File(
-            context.getExternalFilesDir(null), "FRAME_LOGS.csv"
+            context.getExternalFilesDir(null), "frame_timestamp_logs.csv"
     );
     mLogToFile = new LogToFile(logFile);
 
@@ -158,16 +158,19 @@ public class CameraController {
                   "onCaptureCompleted: timestampMs = %,.3f, frameDurationMs = %,.6f, phase ="
                       + " %,.3f, sequence id = %d",
                   timestampMs, frameDurationMs, phaseMs, sequenceId));
+
           // Frame logs for analysis
           //  format: {local timestamp nanos},{sync timestamp nanos},{should save (TRUE/FALSE)}
-          mLogToFile.appendLog(
-                  (double) result.get(CaptureResult.SENSOR_FRAME_DURATION)
-                  + ","
-                  + synchronizedTimestampNs
-                  + ","
-                  + shouldSaveFrame(synchronizedTimestampNs),
-                  context
-          );
+          if (Constants.WRITE_FRAME_LOGS) {
+               mLogToFile.appendLog(
+                    (double) result.get(CaptureResult.SENSOR_TIMESTAMP)
+                            + ","
+                            + synchronizedTimestampNs
+                            + ","
+                            + shouldSaveFrame(synchronizedTimestampNs),
+                    context
+            );
+          }
 
           if (shouldSaveFrame(synchronizedTimestampNs)) {
             Log.d(TAG, "Sync frame found! Committing and processing");
