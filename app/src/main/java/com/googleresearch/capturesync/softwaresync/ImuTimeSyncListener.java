@@ -70,7 +70,7 @@ public class ImuTimeSyncListener extends Thread {
                     continue;
                 }
 
-                recorder.enableSensors(0, 0);
+                recorder.enableSensors(0);
                 String timeStamp = new SimpleDateFormat("dd.MM.HH.mm.ss").format(new Date());
                 recorder.startRecording(mContext, Constants.LOCAL_SENSOR_DIR, timeStamp);
                 // Recording process
