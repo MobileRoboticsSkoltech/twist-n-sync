@@ -70,6 +70,7 @@ public class RawSensorInfo implements SensorEventListener {
         if (! directory.exists()){
             directory.mkdir();
         }
+        cleanupDir(directory);
         File saveFile = new File(
                 directory, sensorType + "_" + timeStamp + ".csv"
         );
@@ -131,5 +132,12 @@ public class RawSensorInfo implements SensorEventListener {
     public void disableSensors() {
         Log.d(TAG, "disableSensors");
         mSensorManager.unregisterListener(this);
+    }
+
+    private void cleanupDir(File fileOrDirectory) {
+        File[] listFiles = fileOrDirectory.listFiles();
+        if (fileOrDirectory.isDirectory() && listFiles != null)
+            for (File child : listFiles)
+                child.delete();
     }
 }
