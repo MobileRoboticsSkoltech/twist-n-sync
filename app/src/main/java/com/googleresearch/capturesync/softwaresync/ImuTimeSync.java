@@ -1,6 +1,5 @@
 package com.googleresearch.capturesync.softwaresync;
 
-import android.content.Context;
 import android.media.AudioManager;
 import android.media.ToneGenerator;
 import android.util.Log;
@@ -70,7 +69,7 @@ public class ImuTimeSync extends TimeSyncProtocol {
             mTimeSyncSocket.send(packetStart);
             Log.d(TAG, "Sent packet start recording to client, recording...");
 
-            recorder.enableSensors(0);
+            recorder.enableSensors(Constants.GYRO_PERIOD_NS);
             String timeStamp = new SimpleDateFormat("dd.MM.HH.mm.ss").format(new Date());
             recorder.startRecording(mContext, Constants.LOCAL_SENSOR_DIR, timeStamp);
             // Recording process

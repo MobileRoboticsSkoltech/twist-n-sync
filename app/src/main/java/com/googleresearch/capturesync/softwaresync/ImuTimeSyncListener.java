@@ -6,15 +6,10 @@ import android.util.Log;
 import com.googleresearch.capturesync.Constants;
 import com.googleresearch.capturesync.RawSensorInfo;
 
-import java.io.BufferedInputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.ObjectOutputStream;
-import java.io.OutputStream;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
-import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
 import java.nio.ByteBuffer;
@@ -70,7 +65,7 @@ public class ImuTimeSyncListener extends Thread {
                     continue;
                 }
 
-                recorder.enableSensors(0);
+                recorder.enableSensors(Constants.GYRO_PERIOD_NS);
                 String timeStamp = new SimpleDateFormat("dd.MM.HH.mm.ss").format(new Date());
                 recorder.startRecording(mContext, Constants.LOCAL_SENSOR_DIR, timeStamp);
                 // Recording process
