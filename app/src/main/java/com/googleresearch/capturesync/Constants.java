@@ -35,11 +35,6 @@ public final class Constants {
   public static final int GYRO_PERIOD_US = 2_000;
 
   /**
-   * Determines whether to write logs with frame timestamps to disk
-   */
-  public static final boolean WRITE_FRAME_LOGS = true;
-
-  /**
    * Subdirectory with local sensor recordings
    */
   public static final String LOCAL_SENSOR_DIR = "local_sensors";

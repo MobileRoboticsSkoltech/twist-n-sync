@@ -30,7 +30,6 @@ import android.view.Surface;
 import com.googleresearch.capturesync.ImageMetadataSynchronizer.CaptureRequestTag;
 import com.googleresearch.capturesync.softwaresync.TimeDomainConverter;
 import com.googleresearch.capturesync.softwaresync.TimeUtils;
-import com.googleresearch.capturesync.LogToFile;
 
 import java.io.File;
 import java.text.SimpleDateFormat;
@@ -62,8 +61,6 @@ public class CameraController {
   public CaptureCallback getSynchronizerCaptureCallback() {
     return imageMetadataSynchronizer.getCaptureCallback();
   }
-
-  private LogToFile mLogToFile;
 
   /**
    * Camera frames come in continuously and are thrown away. When a desired timestamp {@code
@@ -127,7 +124,6 @@ public class CameraController {
     File logFile = new File(
             context.getExternalFilesDir(null), "frame_timestamp_logs.csv"
     );
-    mLogToFile = new LogToFile(logFile);
 
     imageMetadataSynchronizer = new ImageMetadataSynchronizer(imageReaders, imageHandler);
     imageMetadataSynchronizer.registerCallback(
@@ -158,19 +154,6 @@ public class CameraController {
                   "onCaptureCompleted: timestampMs = %,.3f, frameDurationMs = %,.6f, phase ="
                       + " %,.3f, sequence id = %d",
                   timestampMs, frameDurationMs, phaseMs, sequenceId));
-
-          // Frame logs for analysis
-          //  format: {local timestamp nanos},{sync timestamp nanos},{should save (TRUE/FALSE)}
-          if (Constants.WRITE_FRAME_LOGS) {
-               mLogToFile.appendLog(
-                    (double) result.get(CaptureResult.SENSOR_TIMESTAMP)
-                            + ","
-                            + synchronizedTimestampNs
-                            + ","
-                            + shouldSaveFrame(synchronizedTimestampNs),
-                    context
-            );
-          }
 
           if (shouldSaveFrame(synchronizedTimestampNs)) {
             Log.d(TAG, "Sync frame found! Committing and processing");
