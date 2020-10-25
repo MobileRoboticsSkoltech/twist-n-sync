@@ -60,7 +60,7 @@ def main():
             t1_np = t1.to_numpy()
             t2_np = t2.to_numpy()
 
-            time_sync2 = TimeSync2(gyro1_abs, gyro2_abs, t1_np, t2_np, True)
+            time_sync2 = TimeSync2(gyro1_abs, gyro2_abs, t1_np, t2_np, False)
             time_sync2.resample(accuracy=1)
             time_sync2.obtain_delay()
             comp_delay2 = time_sync2.time_delay
