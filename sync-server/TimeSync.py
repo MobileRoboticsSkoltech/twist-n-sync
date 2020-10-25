@@ -1,28 +1,44 @@
 import numpy as np
-import pandas as pd
 from scipy.signal import correlate as cor
 from scipy.interpolate import interp1d, CubicSpline
-from scipy.ndimage.filters import gaussian_filter1d
-from scipy.optimize import fmin
-from scipy.stats import iqr
-from os import listdir
-
-import time
-
 
 class TimeSync2:
-    def __init__(self, x1, x2, t1, t2, do_resample=True):
-        self.x1 = x1
-        self.x2 = x2
+    """
+    A class used to get time delay between two clocks by gyroscope measurements
+
+    ...
+
+    Attributes
+    ----------
+    xx1 : numpy array of shape (N,3)
+        3D angular velocities of the first gyro. for N timestamps
+    xx2 : numpy array of shape (M,3)
+        3D angular velocities of the second gyro. for M timestamps
+    t1 : numpy array of shape (N,)
+        timestamps of the first gyro. measurements
+    t2 : numpy array of shape (N,)
+        timestamps of the second gyro. measurements
+    do_resample : bool
+        flag to do resampling of angular velocities to equal and constant time grids
+        If False then timestamps are used only for estimation of sampling period
+
+    Methods
+    -------
+    #TOBEDONE
+    """
+    def __init__(self, xx1, xx2, t1, t2, do_resample=True,):
+        self.xx1 = xx1
+        self.xx2 = xx2
         self.t1 = t1
         self.t2 = t2
         self.do_resample = do_resample
         self.resample_complete = False
         self.t1_new = None
         self.t2_new = None
-        self.x1_new = None
-        self.x2_new = None
+        self.xx1_new = None
+        self.xx2_new = None
         self.time_delay = None
+        self.cor = None
         
     def resample(self, accuracy=1e-3):
         # if... else... can be skipped if data has the same constant data rate
@@ -40,40 +56,75 @@ class TimeSync2:
                 f_new = func(t_new)
                 return f_new
 
-            self.x1_new = interp(self.t1, self.x1, self.t1_new)
-            self.x2_new = interp(self.t2, self.x2, self.t2_new)
+            self.xx1_new = interp(self.t1, self.xx1, self.t1_new)
+            self.xx2_new = interp(self.t2, self.xx2, self.t2_new)
         else:
-            self.x1_new = self.x1
-            self.x2_new = self.x2
+            self.t1_new = self.t1
+            self.t2_new = self.t2
+            self.xx1_new = self.xx1
+            self.xx2_new = self.xx2
 
         self.resample_complete = True
         
     def obtain_delay(self):
         assert self.resample_complete == True, 'resample() has not called yet'
-        # Compute cross-corrrelation
-        self.cor = cor(self.x2_new, self.x1_new)
-        # Obtain initial index of cross-cor. Related to initial estimation of time delay
-        index_init = np.argmax(self.cor)
         
+        # Obtain initial index of argmax of cross-cor. Related to initial estimation of time delay
+        def get_initial_index(self):
+            x1_temp = np.linalg.norm(self.xx1_new, axis=1)
+            x2_temp = np.linalg.norm(self.xx2_new, axis=1)
+            cross_cor = cor(x2_temp, x1_temp)
+            index_init = np.argmax(cross_cor)
+            return cross_cor, index_init
+        
+        # Correction of index numbering
+        shift = - self.xx1_new.shape[0] + 1
+        # Cross-cor. estimation
+        cross_cor, index_init = get_initial_index(self)
+        index_init = index_init + shift
+
+        #print(index_init)
+        # Rearrangement of data before calibration
+        if index_init > 0:
+            xx1_temp = self.xx1_new[:-index_init]
+            xx2_temp = self.xx2_new[index_init:]
+        elif index_init < 0:
+            xx1_temp = self.xx1_new[-index_init:]
+            xx2_temp = self.xx2_new[:index_init]
+        else:
+            xx1_temp = self.xx1_new
+            xx2_temp = self.xx2_new
+        size = min(xx1_temp.shape[0], xx2_temp.shape[0])
+        xx1_temp = xx1_temp[:size]
+        xx2_temp = xx2_temp[:size]
+        #print(xx1_temp.shape, xx2_temp.shape)
+        
+        # Calibration
+        self.M = (xx2_temp.T @ xx1_temp) @ np.linalg.inv(xx1_temp.T @ xx1_temp)
+        self.xx1_new = (self.M @ self.xx1_new.T).T
+        
+        # Cross-cor. reestimation
+        cross_cor, index_init = get_initial_index(self)
+
         # Cross-cor. based cubic spline coefficients
-        cubic_spline = CubicSpline(np.arange(self.cor.shape[0]), self.cor)
+        cubic_spline = CubicSpline(np.arange(cross_cor.shape[0]), cross_cor, bc_type='natural')
         coefs = cubic_spline.c[:,index_init]
         # Check cubic spline derivative sign...
         order = coefs.shape[0] - 1
         derivative = coefs[-2]
-        # ... and rechoose initial index of cross-cor. if needed
+        # ... and redefine initial index of cross-cor. if needed
         if derivative < 0:
             index_init -= 1
             coefs = cubic_spline.c[:,index_init]
         
         # Solve qudratic equation to obtain roots
         res = np.roots([(order-i)*coefs[i] for i in range(order)])
-        # Choose solution from roots
+        # Choose solution from roots. 
         if sum((order-i)*coefs[i]*((res[0]+res[1])/2)**(order-i-1) for i in range(order)) < 0:
             res = np.min(res)
         else:
             res = np.max(res)
-            
-        # Get time delay between starts of tracks
-        self.some_dat = - self.x1_new.shape[0] + 1
-        self.time_delay = (index_init + self.some_dat +  res) * self.dt
+        
+        self.cor = cross_cor
+        # Get final time delay between starts of tracks
+        self.time_delay = (index_init + shift + res) * self.dt
