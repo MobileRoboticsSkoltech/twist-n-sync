@@ -6,7 +6,7 @@ _Sameer Ansari, Neal Wadhwa, Rahul Garg, Jiawen Chen_, ICCP 2019.
 
 ### Our main contribution to the app
 
-- We integrated gyroscope-based time synchronization algorithm instead of SNTP to demonstrate sync accuracy. The algoritm requires client and leader smartphone to be firmly fixed together and shaken for a few seconds. After that the recorded gyroscope data is processed and calculated offset is returned to the client smartphone.
+- We integrated gyroscope-based time synchronization algorithm instead of SNTP to demonstrate sync accuracy. The algoritm requires client and leader smartphone to be rigidly attached together and shaken for a few seconds. After that the recorded gyroscope data is processed and calculated offset is returned to the client smartphone.
 
 ### Installation instructions:
 
@@ -39,7 +39,7 @@ Note: By default, the app will likely start in client mode, with no UI options.
 ### App basic usage
 
 1. User sets up all devices on the same WiFi network.
-2. User starts app on all devices, uses exposure sliders, presses the ```Start Syncing``` button on leader device. After that, user is forced to fix devices and shake them during recording (recording start and end are marked by beep sounds on leader smartphone). Sync result is displayed shortly after the signal as a Toast on the leader device.
+2. User starts app on all devices, uses exposure sliders, presses the ```Start Syncing``` button on leader device. After that, user is forced to rigidly connect devices and shake them during recording (recording start and end are marked by beep sounds on leader smartphone). Sync result is displayed shortly after the signal as a Toast on the leader device.
 3. Then user presses ```Phase Align``` button on the leader device.
 3. User presses capture button on the leader device to collect captures.
 4. If JPEG is enabled (default) the user can verify captures by going to the Pictures photo directory on their phone through Google Photos or similar.
