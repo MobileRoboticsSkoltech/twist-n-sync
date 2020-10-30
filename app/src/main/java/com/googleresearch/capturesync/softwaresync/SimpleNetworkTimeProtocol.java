@@ -31,7 +31,7 @@ import java.util.concurrent.Executors;
  * Simple Network Time Protocol (SNTP) for clock synchronization logic between leader and clients.
  * This implements the leader half of the protocol, with SntpListener implementing the client side.
  *
- * <p>Provides a doSNTP function allowing the leader to initiate synchronization with a client
+ * <p>Provides a doTimeSync function allowing the leader to initiate synchronization with a client
  * address. The SntpListener class is used by the clients to handle responding to these messages.
  */
 public class SimpleNetworkTimeProtocol extends TimeSyncProtocol {

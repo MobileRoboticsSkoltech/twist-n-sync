@@ -16,6 +16,12 @@ import java.nio.ByteBuffer;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+/**
+ * IMU time sync listener thread, executes client side
+ * of the synchronization procedure (waits for the message
+ * to start recording from the leader, then records gyroscope
+ * events and sends the result to the leader).
+ */
 public class ImuTimeSyncListener extends Thread {
     private static final String TAG = "ImuTimeSyncListener";
     private boolean running;
@@ -75,7 +81,7 @@ public class ImuTimeSyncListener extends Thread {
                 recorder.disableSensors();
                 Log.d(TAG, "Stopped recording");
 
-                // File transfer
+                // File transfer to leader
                 File file = new File(recorder.getLastGyroPath());
                 Log.d(TAG, "Sensor file opened");
                 Socket sendSocket = new Socket(packet.getAddress(), imuTimeSyncPort);

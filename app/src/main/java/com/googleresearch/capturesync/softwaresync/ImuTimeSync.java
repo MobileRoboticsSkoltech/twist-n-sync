@@ -24,7 +24,14 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-
+/**
+ * IMU time sync class, is used to synchronize device local clocks.
+ * The synchronization algorithm itself should be running on server,
+ * the class only exchanges information with it and handles offset receiving
+ *
+ * <p>Provides a doTimeSync function allowing the leader to initiate synchronization with a client
+ * address. The ImuTimeSyncListener executes the client side.
+ */
 public class ImuTimeSync extends TimeSyncProtocol {
     private static final String TAG = "ImuTimeSync";
     private final ExecutorService mTimeSyncExecutor = Executors.newSingleThreadExecutor();
@@ -44,15 +51,13 @@ public class ImuTimeSync extends TimeSyncProtocol {
     }
 
     /**
-     *  Is executed on leader
-     *  smartphone, performs gyroSync
-     *  algorithm and returns calculated offset
-     * @param clientAddress
-     * @return
+     *  Is executed on leader smartphone,
+     *  exchanges information with gyro sync algorithm
+     *  which is executed on PC. Returns calculated offset.
      */
     @Override
     protected TimeSyncOffsetResponse doTimeSync(InetAddress clientAddress) {
-        // TODO: move sound of start and stop recording to VIEW (callbacks?)
+        // TODO: move sound of start and stop recording to VIEW somehow?
         ToneGenerator beep = new ToneGenerator(AudioManager.STREAM_ALARM, 100);
         byte[] bufferStart = ByteBuffer.allocate(SyncConstants.RPC_BUFFER_SIZE).putInt(
                 SyncConstants.METHOD_MSG_START_RECORDING
