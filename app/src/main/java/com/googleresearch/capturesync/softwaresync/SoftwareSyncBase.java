@@ -18,6 +18,9 @@ package com.googleresearch.capturesync.softwaresync;
 
 import android.os.HandlerThread;
 import android.util.Log;
+
+import com.googleresearch.capturesync.MainActivity;
+
 import java.io.Closeable;
 import java.io.IOException;
 import java.net.BindException;
@@ -44,6 +47,7 @@ public abstract class SoftwareSyncBase implements Closeable, TimeDomainConverter
   static final String TAG = "SoftwareSyncBase";
   private final ClientInfo localClientInfo; // Client info for this device.
   private final InetAddress leaderAddress;
+  private final MainActivity mContext;
   final Ticker localClock;
 
   /**
@@ -64,10 +68,11 @@ public abstract class SoftwareSyncBase implements Closeable, TimeDomainConverter
   /** Handle onRPC events on a separate thread. */
   private final ExecutorService rpcExecutor = Executors.newSingleThreadExecutor();
 
-  SoftwareSyncBase(String name, Ticker localClock, InetAddress address, InetAddress leaderAddress) {
+  SoftwareSyncBase(String name, Ticker localClock, InetAddress address, InetAddress leaderAddress, MainActivity context) {
     this.rpcPort = SyncConstants.RPC_PORT;
     this.sntpPort = SyncConstants.SNTP_PORT;
     this.localClock = localClock;
+    this.mContext = context;
 
     // Set up local ClientInfo from the provided address.
     localClientInfo = ClientInfo.create(name, address);
@@ -97,6 +102,10 @@ public abstract class SoftwareSyncBase implements Closeable, TimeDomainConverter
     // onRpc with the processed method and payload.
     rpcListenerThread = new RpcThread();
     rpcListenerThread.start();
+  }
+
+  public MainActivity getContext() {
+    return mContext;
   }
 
   /**

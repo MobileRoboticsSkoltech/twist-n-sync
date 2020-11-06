@@ -19,7 +19,9 @@ package com.googleresearch.capturesync;
 import android.Manifest.permission;
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
@@ -52,17 +54,23 @@ import android.widget.SeekBar;
 import android.widget.SeekBar.OnSeekBarChangeListener;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.googleresearch.capturesync.softwaresync.ClientInfo;
+import com.googleresearch.capturesync.softwaresync.SoftwareSyncClient;
 import com.googleresearch.capturesync.softwaresync.SoftwareSyncLeader;
 import com.googleresearch.capturesync.softwaresync.TimeUtils;
 import com.googleresearch.capturesync.softwaresync.phasealign.PhaseConfig;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.InetAddress;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -73,7 +81,7 @@ public class MainActivity extends Activity {
   private boolean permissionsGranted = false;
 
   // Phase config file to use for phase alignment, configs are located in the raw folder.
-  private final int phaseConfigFile = R.raw.pixel3_phaseconfig;
+  private final int phaseConfigFile = R.raw.default_phaseconfig;
 
   // Camera controls.
   private HandlerThread cameraThread;
@@ -96,6 +104,7 @@ public class MainActivity extends Activity {
   // UI controls.
   private Button captureStillButton;
   private Button phaseAlignButton;
+  private Button startSyncButton;
   private SeekBar exposureSeekBar;
   private SeekBar sensitivitySeekBar;
   private TextView statusTextView;
@@ -355,6 +364,18 @@ public class MainActivity extends Activity {
                 .broadcastRpc(SoftwareSyncController.METHOD_DO_PHASE_ALIGN, "");
           });
 
+      startSyncButton.setOnClickListener(
+            view -> {
+              Log.d(TAG, "Starting time sync");
+              SoftwareSyncLeader leader = ((SoftwareSyncLeader) softwareSyncController.softwareSync);
+
+              for (Map.Entry<InetAddress, ClientInfo> entry : leader.getClients().entrySet()) {
+                ClientInfo client = entry.getValue();
+                // Submit client sync request
+                leader.newSyncRequestForClient(client.address());
+              }
+            });
+
       exposureSeekBar.setOnSeekBarChangeListener(
           new OnSeekBarChangeListener() {
             @Override
@@ -417,6 +438,7 @@ public class MainActivity extends Activity {
       phaseAlignButton.setVisibility(View.INVISIBLE);
       exposureSeekBar.setVisibility(View.INVISIBLE);
       sensitivitySeekBar.setVisibility(View.INVISIBLE);
+      startSyncButton.setVisibility(View.INVISIBLE);
 
       captureStillButton.setOnClickListener(null);
       phaseAlignButton.setOnClickListener(null);
@@ -515,7 +537,7 @@ public class MainActivity extends Activity {
     viewfinderResolution =
         Collections.max(Arrays.asList(viewfinderOutputSizes), new CompareSizesByArea());
 
-    Size[] rawOutputSizes = scm.getOutputSizes(ImageFormat.RAW10);
+    /*Size[] rawOutputSizes = scm.getOutputSizes(ImageFormat.RAW10);
     if (rawOutputSizes != null) {
       Log.i(TAG, "Available Bayer RAW resolutions:");
       for (Size s : rawOutputSizes) {
@@ -524,8 +546,9 @@ public class MainActivity extends Activity {
     } else {
       Log.i(TAG, "Bayer RAW unavailable!");
     }
-    rawImageResolution = Collections.max(Arrays.asList(rawOutputSizes), new CompareSizesByArea());
+    //rawImageResolution = Collections.max(Arrays.asList(rawOutputSizes), new CompareSizesByArea());
 
+     */
     Size[] yuvOutputSizes = scm.getOutputSizes(ImageFormat.YUV_420_888);
     if (yuvOutputSizes != null) {
       Log.i(TAG, "Available YUV resolutions:");
@@ -537,7 +560,7 @@ public class MainActivity extends Activity {
     }
     yuvImageResolution = Collections.max(Arrays.asList(yuvOutputSizes), new CompareSizesByArea());
     Log.i(TAG, "Chosen viewfinder resolution: " + viewfinderResolution);
-    Log.i(TAG, "Chosen raw resolution: " + rawImageResolution);
+    //Log.i(TAG, "Chosen raw resolution: " + rawImageResolution);
     Log.i(TAG, "Chosen yuv resolution: " + yuvImageResolution);
   }
 
@@ -632,6 +655,7 @@ public class MainActivity extends Activity {
     phaseAlignButton = findViewById(R.id.phase_align_button);
     exposureSeekBar = findViewById(R.id.exposure_seekbar);
     sensitivitySeekBar = findViewById(R.id.sensitivity_seekbar);
+    startSyncButton = findViewById(R.id.start_sync_button);
     sensorExposureTextView.setText("Exposure: " + prettyExposureValue(currentSensorExposureTimeNs));
     sensorSensitivityTextView.setText("Sensitivity: " + currentSensorSensitivity);
   }

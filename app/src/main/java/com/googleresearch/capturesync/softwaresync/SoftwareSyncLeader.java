@@ -17,7 +17,11 @@
 package com.googleresearch.capturesync.softwaresync;
 
 import android.util.Log;
+
+import com.googleresearch.capturesync.MainActivity;
+
 import java.io.IOException;
+import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.Arrays;
@@ -57,11 +61,11 @@ public class SoftwareSyncLeader extends SoftwareSyncBase {
   private final ExecutorService rpcMessageExecutor = Executors.newSingleThreadExecutor();
 
   /** Manages SNTP synchronization of clients. */
-  private final SimpleNetworkTimeProtocol sntp;
+  private final TimeSyncProtocol imuTimeSync;
 
   public SoftwareSyncLeader(
-      String name, long initialTime, InetAddress address, Map<Integer, RpcCallback> rpcCallbacks) {
-    this(name, new SystemTicker(), initialTime, address, rpcCallbacks);
+      String name, long initialTime, InetAddress address, Map<Integer, RpcCallback> rpcCallbacks, MainActivity context) {
+    this(name, new SystemTicker(), initialTime, address, rpcCallbacks, context);
   }
 
   @SuppressWarnings("FutureReturnValueIgnored")
@@ -70,9 +74,11 @@ public class SoftwareSyncLeader extends SoftwareSyncBase {
       Ticker localClock,
       long initialTime,
       InetAddress address,
-      Map<Integer, RpcCallback> rpcCallbacks) {
+      Map<Integer, RpcCallback> rpcCallbacks,
+      MainActivity context
+  ) {
     // Note: Leader address is required to be the same as local address.
-    super(name, localClock, address, address);
+    super(name, localClock, address, address, context);
 
     // Set up the offsetNs so that the leader synchronized time (via getLeaderTimeNs()) on all
     // devices
@@ -100,12 +106,16 @@ public class SoftwareSyncLeader extends SoftwareSyncBase {
     // Add callbacks passed by user.
     addPublicRpcCallbacks(rpcCallbacks);
 
-    // Set up SNTP instance for synchronizing with clients.
-    sntp = new SimpleNetworkTimeProtocol(localClock, sntpSocket, SyncConstants.SNTP_PORT, this);
+    // Set up time sync instance for synchronizing with clients.
+    imuTimeSync = new ImuTimeSync(localClock, sntpSocket, SyncConstants.SNTP_PORT, this, getContext());
 
     // Start periodically checking for stale clients and removing as needed.
     staleClientChecker.scheduleAtFixedRate(
         this::removeStaleClients, 0, SyncConstants.STALE_TIME_NS, TimeUnit.NANOSECONDS);
+  }
+
+  public void newSyncRequestForClient(InetAddress clientAddress) {
+    imuTimeSync.submitNewSyncRequest(clientAddress);
   }
 
   public Map<InetAddress, ClientInfo> getClients() {
@@ -167,7 +177,7 @@ public class SoftwareSyncLeader extends SoftwareSyncBase {
   }
 
   /** Finds and updates client sync accuracy within list. */
-  void updateClientWithOffsetResponse(InetAddress clientAddress, SntpOffsetResponse response) {
+  void updateClientWithOffsetResponse(InetAddress clientAddress, TimeSyncOffsetResponse response) {
     // Update client sync accuracy locally.
     synchronized (clientsLock) {
       if (!clients.containsKey(clientAddress)) {
@@ -224,7 +234,7 @@ public class SoftwareSyncLeader extends SoftwareSyncBase {
 
   @Override
   public void close() throws IOException {
-    sntp.close();
+    imuTimeSync.close();
     staleClientChecker.shutdown();
     try {
       // Wait up to 0.5 seconds for this to close.
@@ -238,7 +248,7 @@ public class SoftwareSyncLeader extends SoftwareSyncBase {
 
   /**
    * Process a heartbeat rpc call from a client by responding with a heartbeat acknowledge, adding
-   * or updating the client in the tracked clients list, and submitting a new SNTP sync request if
+   * or updating the client in the tracked clients list, and submitting a new sync request if
    * the client state is not yet synchronized.
    *
    * @param payload format of "ClientName,ClientAddress,ClientState"
@@ -264,8 +274,11 @@ public class SoftwareSyncLeader extends SoftwareSyncBase {
     addOrUpdateClient(clientName, clientAddress);
 
     // If the client state is not yet synchronized, add it to the SNTP queue.
-    if (!clientSyncState) {
+    // (Not needed for now, sync start should be done with the button!)
+
+    /*if (!clientSyncState) {
       sntp.submitNewSyncRequest(clientAddress);
     }
+     */
   }
 }

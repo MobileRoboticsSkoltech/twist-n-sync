@@ -30,10 +30,13 @@ import android.view.Surface;
 import com.googleresearch.capturesync.ImageMetadataSynchronizer.CaptureRequestTag;
 import com.googleresearch.capturesync.softwaresync.TimeDomainConverter;
 import com.googleresearch.capturesync.softwaresync.TimeUtils;
+
+import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.TimeZone;
+
 
 /** High level camera controls. */
 public class CameraController {
@@ -117,6 +120,10 @@ public class CameraController {
               ImageFormat.YUV_420_888,
               imageBuffer));
     }
+
+    File logFile = new File(
+            context.getExternalFilesDir(null), "frame_timestamp_logs.csv"
+    );
 
     imageMetadataSynchronizer = new ImageMetadataSynchronizer(imageReaders, imageHandler);
     imageMetadataSynchronizer.registerCallback(

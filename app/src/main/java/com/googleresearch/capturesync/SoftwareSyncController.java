@@ -33,6 +33,8 @@ import com.googleresearch.capturesync.softwaresync.TimeUtils;
 import java.io.Closeable;
 import java.io.IOException;
 import java.net.InetAddress;
+import java.net.ServerSocket;
+import java.net.Socket;
 import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.util.HashMap;
@@ -82,7 +84,7 @@ public class SoftwareSyncController implements Closeable {
     }
 
     // Get Wifi Manager and use NetworkHelpers to determine local and leader IP addresses.
-    WifiManager wifiManager = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
+    WifiManager wifiManager = (WifiManager) context.getApplicationContext().getSystemService(Context.WIFI_SERVICE);
     InetAddress leaderAddress;
     InetAddress localAddress;
 
@@ -93,7 +95,9 @@ public class SoftwareSyncController implements Closeable {
     try {
       NetworkHelpers networkHelper = new NetworkHelpers(wifiManager);
       localAddress = NetworkHelpers.getIPAddress();
-      leaderAddress = networkHelper.getHotspotServerAddress();
+      //leaderAddress = networkHelper.getHotspotServerAddress();
+      // To use when leader is not a hotspot device:
+      leaderAddress = InetAddress.getByName(Constants.LEADER_IP);
 
       // Note: This is a brittle way of checking leadership that may not work on all devices.
       // Leader only if it is the one with same IP address as the server, or a zero IP address.
@@ -157,6 +161,9 @@ public class SoftwareSyncController implements Closeable {
 
     if (isLeader) {
       // Leader.
+
+
+
       long initTimeNs = TimeUtils.millisToNanos(System.currentTimeMillis());
       // Create rpc mapping specific to leader.
       Map<Integer, RpcCallback> leaderRpcs = new HashMap<>(sharedRpcs);
@@ -164,9 +171,10 @@ public class SoftwareSyncController implements Closeable {
       leaderRpcs.put(SyncConstants.METHOD_MSG_REMOVED_CLIENT, payload -> updateClientsUI());
       leaderRpcs.put(SyncConstants.METHOD_MSG_SYNCING, payload -> updateClientsUI());
       leaderRpcs.put(SyncConstants.METHOD_MSG_OFFSET_UPDATED, payload -> updateClientsUI());
-      softwareSync = new SoftwareSyncLeader(name, initTimeNs, localAddress, leaderRpcs);
+      softwareSync = new SoftwareSyncLeader(name, initTimeNs, localAddress, leaderRpcs, context);
     } else {
       // Client.
+
       Map<Integer, RpcCallback> clientRpcs = new HashMap<>(sharedRpcs);
       clientRpcs.put(
           SyncConstants.METHOD_MSG_WAITING_FOR_LEADER,
@@ -187,7 +195,7 @@ public class SoftwareSyncController implements Closeable {
                           String.format(
                               "Client %s\n-Synced to Leader %s",
                               softwareSync.getName(), softwareSync.getLeaderAddress()))));
-      softwareSync = new SoftwareSyncClient(name, localAddress, leaderAddress, clientRpcs);
+      softwareSync = new SoftwareSyncClient(name, localAddress, leaderAddress, clientRpcs, context);
     }
 
     if (isLeader) {
@@ -220,13 +228,7 @@ public class SoftwareSyncController implements Closeable {
               String.format("Leader %s: %d clients.\n", softwareSync.getName(), clientCount));
           for (Entry<InetAddress, ClientInfo> entry : leader.getClients().entrySet()) {
             ClientInfo client = entry.getValue();
-            if (client.syncAccuracy() == 0) {
-              msg.append(String.format("-Client %s: syncing...\n", client.name()));
-            } else {
-              msg.append(
-                  String.format(
-                      "-Client %s: %.2f ms sync\n", client.name(), client.syncAccuracy() / 1e6));
-            }
+            msg.append(String.format("-Client %s: ready to sync\n", client.name()));
           }
           statusView.setText(msg.toString());
         });

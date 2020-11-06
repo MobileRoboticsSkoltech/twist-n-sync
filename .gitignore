@@ -89,3 +89,9 @@ lint/tmp/
 
 
 .idea/
+
+*.ipynb
+
+sync-server/__pycache__/
+
+*.csv

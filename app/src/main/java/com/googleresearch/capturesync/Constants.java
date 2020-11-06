@@ -19,8 +19,26 @@ package com.googleresearch.capturesync;
 import android.hardware.camera2.CameraCharacteristics;
 import com.googleresearch.capturesync.softwaresync.TimeUtils;
 
-/** Constants including what type of images to save and the save directory. */
+/** Global constants of the app. */
 public final class Constants {
+  /**
+   * IP of gyro sync server, can be obtained from the script output or with ifconfig
+   */
+  public static final String PC_SERVER_IP = "192.168.1.61";
+
+  public static final String LEADER_IP = "192.168.1.107";
+
+  /**
+   * Gyroscope sampling period in microseconds
+   * TODO: Hz value representation
+   */
+  public static final int GYRO_PERIOD_US = 2_000;
+
+  /**
+   * Subdirectory with local sensor recordings
+   */
+  public static final String LOCAL_SENSOR_DIR = "local_sensors";
+
   public static final int DEFAULT_CAMERA_FACING = CameraCharacteristics.LENS_FACING_BACK;
 
   /**
