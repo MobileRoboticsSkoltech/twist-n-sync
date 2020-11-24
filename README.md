@@ -12,6 +12,7 @@ _Sameer Ansari, Neal Wadhwa, Rahul Garg, Jiawen Chen_, ICCP 2019.
 ### Demo
 
 ![Demonstration of capture sync on notebook flipping](https://imgur.com/MoQsBdw.jpg)
+*Demonstration of gyroscope-based sync accuracy on notebook flipping*
 
 ### Installation
 
