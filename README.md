@@ -8,13 +8,13 @@ _Sameer Ansari, Neal Wadhwa, Rahul Garg, Jiawen Chen_, ICCP 2019.
 
 - We integrated gyroscope-based time synchronization algorithm instead of SNTP to demonstrate sync accuracy. The algoritm requires client and leader smartphone to be rigidly attached together and shaken for a few seconds. After that the recorded gyroscope data is processed and calculated offset is returned to the client smartphone.
 
-### Installation instructions:
+### Installation
 
 #### Gyro-based sync server setup
 
-1.  Make sure that your pc is connected to the same network as all the smartphones.
-2.  Before using the app, run ```python3 sync-server/server.py```. This command launches simple TCP-based server which accepts two gyroscope files, calculates and returns offset in Ns to the leader smartphone.
-3.  Specify pc host address in ```Constants``` class of AndroidStudio project (address can be found with ```ifconfig```)
+1.  Make sure that your pc is connected to **the same network** as all the smartphones.
+2.  Before using the app, **run** ```python3 sync-server/server.py```. This command launches simple TCP-based server which accepts two gyroscope files, calculates and returns offset in Ns to the leader smartphone.
+3.  Specify **pc host address** in ```Constants``` class of AndroidStudio project (address can be found with ```ifconfig```)
 
 #### App setup
 
