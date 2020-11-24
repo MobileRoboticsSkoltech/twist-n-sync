@@ -1,4 +1,5 @@
 # Gyroscope-Based Time Synchronization of Distributed Cameras
+[![Build Status](https://travis-ci.org/MobileRoboticsSkoltech/twist-n-sync.svg?branch=master)](https://travis-ci.org/MobileRoboticsSkoltech/softwaresync-imu)
 
 We use a modified version of [libsoftwaresync](https://github.com/google-research/libsoftwaresync) to verify sync accuracy by taking pictures on two devices with minimal delay. You can learn more about phase alignment implementation, capture details in [libsoftwaresync](https://github.com/google-research/libsoftwaresync) or in this paper:
 [Wireless Software Synchronization of Multiple Distributed Cameras](https://arxiv.org/abs/1812.09366).
@@ -6,7 +7,11 @@ _Sameer Ansari, Neal Wadhwa, Rahul Garg, Jiawen Chen_, ICCP 2019.
 
 ### Our main contribution to the app
 
-- We integrated gyroscope-based time synchronization algorithm instead of SNTP to demonstrate sync accuracy. The algoritm requires client and leader smartphone to be rigidly attached together and shaken for a few seconds. After that the recorded gyroscope data is processed and calculated offset is returned to the client smartphone.
+- We integrated **gyroscope-based time synchronization algorithm** instead of SNTP to demonstrate sync accuracy. The algoritm requires client and leader smartphone to be rigidly attached together and shaken for a few seconds. After that the recorded gyroscope data is processed and calculated offset is returned to the client smartphone.
+
+### Demo
+
+![Demonstration of capture sync on notebook flipping](https://imgur.com/MoQsBdw.jpg)
 
 ### Installation
 
