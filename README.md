@@ -42,12 +42,13 @@ _Sameer Ansari, Neal Wadhwa, Rahul Garg, Jiawen Chen_, ICCP 2019.
 Note: By default, the app will likely start in client mode, with no UI options.
 
 
-### App basic usage
+### Usage
 
-1. User sets up all devices on the same WiFi network.
-2. User starts app on all devices, uses exposure sliders, presses the ```Start Syncing``` button on leader device. After that, user is forced to rigidly connect devices and shake them during recording (recording start and end are marked by beep sounds on leader smartphone). Sync result is displayed shortly after the signal as a Toast on the leader device.
-3. Then user presses ```Phase Align``` button on the leader device.
-3. User presses capture button on the leader device to collect captures.
-4. If JPEG is enabled (default) the user can verify captures by going to the Pictures photo directory on their phone through Google Photos or similar.
-5. After a capture session, the user pulls the data from each phone to the local machine using ```adb pull```.
+1. **Set up devices** on the same WiFi network.
+2. **Start app** on devices, use exposure sliders, press the ```Start Syncing``` button on the leader device. 
+3. After that, app shows a dialog asking to **rigidly connect devices and shake them during gyroscope recording** (recording start and end are marked by beep sounds on leader smartphone). Sync result is displayed shortly after the signal as a Toast on the leader device.
+4. Then press ```Phase Align``` button on the leader device.
+5. Press **capture button** on the leader device to collect captures.
+6. If JPEG is enabled (default) the user can verify captures by going to the Pictures photo directory on their phone through Google Photos or similar.
+7. After a capture session, the data from each phone can be pulled to the pc with ```adb pull```.
 
