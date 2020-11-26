@@ -7,12 +7,12 @@ _Sameer Ansari, Neal Wadhwa, Rahul Garg, Jiawen Chen_, ICCP 2019.
 
 ### Our main contribution to the app
 
-- We integrated **gyroscope-based time synchronization algorithm** instead of SNTP to demonstrate sync accuracy. The algoritm requires client and leader smartphone to be rigidly attached together and shaken for a few seconds. After that the recorded gyroscope data is processed and calculated offset is returned to the client smartphone.
+- We integrated **gyroscope-based time synchronization algorithm** instead of SNTP to demonstrate sync accuracy. The algoritm requires client and leader smartphone to be rigidly attached together and shaken for a few seconds. After that the recorded gyroscope data is processed and calculated offset is returned to the client smartphone. All the experiments have been carried out using two Samsung S10e smartphones.
 
 ### Demo
 
 ![Demonstration of capture sync on notebook flipping](https://imgur.com/MoQsBdw.jpg)
-*Demonstration of gyroscope-based sync accuracy on notebook flipping, shot with two Galaxy S10e smartphones*
+*Demonstration of gyroscope-based sync accuracy on notebook flipping, shot by two Galaxy S10e smartphones*
 
 ### Installation
 
