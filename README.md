@@ -11,10 +11,10 @@ _Sameer Ansari, Neal Wadhwa, Rahul Garg, Jiawen Chen_, ICCP 2019.
 
 ### Demonstration of sync accuracy
 
-![Demonstration of capture sync on notebook flipping](https://imgur.com/MoQsBdw.jpg) \
+![Demonstration of capture sync on notebook flipping](https://imgur.com/NjwgfzS.jpg) \
 _Demonstration of gyroscope-based sync accuracy on notebook flipping, shot by two Galaxy S10e smartphones_
 
-![Demonstration of capture sync on snowballs, photos](https://imgur.com/WdKwBRc.jpg) \
+![Demonstration of capture sync on snowballs, photos](https://imgur.com/odnkuFN.jpg) \
 _Experiment with snowballs, photos shot by two Samsung Galaxy S10e smartphones_
 
 ![Demonstration of capture sync on snowballs, footage](https://imgur.com/kWs0iA8.gif) \
