@@ -18,7 +18,7 @@ _Demonstration of gyroscope-based sync accuracy on notebook flipping, shot by tw
 _Footage of experiment with snowballs_
 
 ![Demonstration of capture sync on snowballs, photos](https://imgur.com/WdKwBRc.jpg) \
-_Experiment with snowballs, photos shot with by two Samsung Galaxy S10e smartphones_
+_Experiment with snowballs, photos shot by two Samsung Galaxy S10e smartphones_
 
 ### Installation
 
