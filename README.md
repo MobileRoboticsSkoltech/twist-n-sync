@@ -9,6 +9,25 @@ _Sameer Ansari, Neal Wadhwa, Rahul Garg, Jiawen Chen_, ICCP 2019.
 
 - We integrated **gyroscope-based time synchronization algorithm** instead of SNTP to demonstrate sync accuracy. The algoritm requires client and leader smartphone to be rigidly attached together and shaken for a few seconds. After that the recorded gyroscope data is processed and calculated offset is returned to the client smartphone. All the experiments have been carried out using two Samsung S10e smartphones.
 
+### Complete report
+
+For further reference on the twist-n-sync implementation and complete report, see our [publication here](https://www.mdpi.com/1424-8220/21/1/68):
+
+Faizullin M, Kornilova A, Akhmetyanov A, Ferrer G. Twist-n-Sync: Software Clock Synchronization with Microseconds Accuracy Using MEMS-Gyroscopes. Sensors. 2021; 21(1):68. 
+
+
+```
+@article{faizullin,
+  title={Twist-n-Sync: Software Clock Synchronization with Microseconds Accuracy Using MEMS-Gyroscopes},
+  author={Faizullin, Marsel and Kornilova, Anastasiia and Akhmetyanov, Azat and Ferrer, Gonzalo},
+  journal={Sensors},
+  volume={21},
+  number={1},
+  year={2021}
+}
+```
+
+
 ### Demonstration of sync accuracy
 
 ![Demonstration of capture sync on notebook flipping](https://imgur.com/NjwgfzS.jpg) \
