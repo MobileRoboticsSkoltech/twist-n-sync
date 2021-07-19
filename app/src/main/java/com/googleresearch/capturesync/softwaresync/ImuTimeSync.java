@@ -24,6 +24,7 @@ import android.widget.Toast;
 import com.googleresearch.capturesync.Constants;
 import com.googleresearch.capturesync.MainActivity;
 import com.googleresearch.capturesync.RawSensorInfo;
+import com.googleresearch.capturesync.wrapperJNI;
 
 import java.io.DataInputStream;
 import java.io.File;
@@ -113,7 +114,7 @@ public class ImuTimeSync extends TimeSyncProtocol {
 
             // Send files to PC
             File gyroFileLeader = new File(recorder.getLastGyroPath());
-            return doGyroSyncOnServer(
+            return doGyroSyncInLibrary(
                     gyroFileClient, gyroFileLeader
             );
         } catch (IOException | InterruptedException e) {
@@ -130,61 +131,14 @@ public class ImuTimeSync extends TimeSyncProtocol {
     }
 
     /**
-     * Computes offset on server
+     * Computes offset in library
      * @return
      */
-    private TimeSyncOffsetResponse doGyroSyncOnServer(
+    private TimeSyncOffsetResponse doGyroSyncInLibrary(
             File gyroFileClient,
             File gyroFileLeader
     ) {
-        try {
-            // Send client file to PC
-            mFileUtils.sendFile(
-                    gyroFileClient, new Socket(
-                            InetAddress.getByName(Constants.PC_SERVER_IP),
-                            mTimeSyncPort
-                    )
-            );
-
-            // Send leader file to PC
-            mFileUtils.sendFile(
-                    gyroFileLeader, new Socket(
-                            InetAddress.getByName(Constants.PC_SERVER_IP),
-                            mTimeSyncPort
-                    )
-            );
-        } catch (UnknownHostException e) {
-            e.printStackTrace();
-            showMessageOnUi("Sync failed: couldn't determine server host IP adderss");
-            Log.e(TAG, "Could not determine server host IP address");
-            return TimeSyncOffsetResponse.create(0, 0, false);
-        } catch (IOException e) {
-            e.printStackTrace();
-            showMessageOnUi("Sync failed: couldn't send files to server");
-            Log.e(TAG, "Failed to send files to server");
-            return TimeSyncOffsetResponse.create(0, 0, false);
-        }
-
-        try (
-                Socket sc = new Socket(
-                        InetAddress.getByName(Constants.PC_SERVER_IP),
-                        mTimeSyncPort
-                )
-        ) {
-            InputStream in = sc.getInputStream();
-            DataInputStream dataInputStream = new DataInputStream(in);
-            double offsetNs = dataInputStream.readDouble();
-            showMessageOnUi("Sync successful: Received offset from server: " + offsetNs / 1e9 + " seconds");
-            Log.d(TAG, "Success! Received offset from server: " + offsetNs / 1e9 + " seconds");
-            // TODO: modify response with more error values and remove sync accuracy logic
-            return TimeSyncOffsetResponse.create((long) offsetNs, 0, true);
-
-        } catch (IOException e) {
-            e.printStackTrace();
-            showMessageOnUi("Sync failed: couldn't receive offset from server");
-            Log.e(TAG, "Failed to receive offset from server");
-            return TimeSyncOffsetResponse.create(0, 0, false);
-        }
+        return TimeSyncOffsetResponse.create(0, 0, false);
     }
 
     private void showMessageOnUi(String message) {
