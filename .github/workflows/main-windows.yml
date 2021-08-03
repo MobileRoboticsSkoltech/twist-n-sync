@@ -1,0 +1,34 @@
+name: Android CI on Windows
+
+on: [push]
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout repository and submodules
+        uses: actions/checkout@v2
+        with:
+          submodules: recursive
+
+      - name: Set up JDK 1.8
+        uses: actions/setup-java@v1
+        with:
+          java-version: 1.8
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v2
+
+      - name: Get specific version CMake, v3.18.1
+        run: sdkmanager "cmake;3.18.1"
+
+      - name: Update ndk-version
+        uses: nttld/setup-ndk@v1
+        with:
+          ndk-version: r22b
+
+      - name: Build with Gradle
+        run: .\gradlew.bat --no-daemon build
+
+      - name: Run unit tests
+        run: .\gradlew.bat --no-daemon test
