@@ -1,5 +1,7 @@
 # Gyroscope-Based Time Synchronization of Distributed Cameras
-[![Build Status](https://travis-ci.org/MobileRoboticsSkoltech/twist-n-sync.svg?branch=master)](https://travis-ci.org/MobileRoboticsSkoltech/softwaresync-imu)
+[![Android CI on Ubuntu and MacOS](https://github.com/pmokeev/twist-n-sync/actions/workflows/main-ubuntuAndMacOS.yml/badge.svg)](https://github.com/pmokeev/twist-n-sync/actions/workflows/main-ubuntuAndMacOS.yml)
+
+[![Android CI on Windows](https://github.com/pmokeev/twist-n-sync/actions/workflows/main-windows.yml/badge.svg)](https://github.com/pmokeev/twist-n-sync/actions/workflows/main-windows.yml)
 
 We use a modified version of [libsoftwaresync](https://github.com/google-research/libsoftwaresync) to verify sync accuracy by taking pictures on two devices with minimal delay. You can learn more about phase alignment implementation, capture details in [libsoftwaresync](https://github.com/google-research/libsoftwaresync) or in this paper:
 [Wireless Software Synchronization of Multiple Distributed Cameras](https://arxiv.org/abs/1812.09366).
