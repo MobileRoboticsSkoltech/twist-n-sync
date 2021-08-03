@@ -94,4 +94,4 @@ lint/tmp/
 
 sync-server/__pycache__/
 
-*.csv
+sync-server/*.csv
