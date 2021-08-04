@@ -35,6 +35,7 @@ jobs:
         run: ./gradlew test
 
       - name: Run android tests
+        if: matrix.os == 'macos-latest'
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: 23
