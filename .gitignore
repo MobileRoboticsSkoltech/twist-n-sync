@@ -95,3 +95,9 @@ lint/tmp/
 sync-server/__pycache__/
 
 sync-server/*.csv
+
+# Scapix unnecessary files
+app/src/main/cpp/generated/bridge/cs
+app/src/main/cpp/generated/bridge/js
+app/src/main/cpp/generated/bridge/objc
+app/src/main/cpp/generated/bridge/python

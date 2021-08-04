@@ -1,0 +1,6 @@
+[submodule "app/src/main/cpp/lib/spline"]
+	path = app/src/main/cpp/lib/spline
+	url = https://github.com/ttk592/spline
+[submodule "app/src/main/cpp/lib/eigen"]
+	path = app/src/main/cpp/lib/eigen
+	url = https://gitlab.com/libeigen/eigen
