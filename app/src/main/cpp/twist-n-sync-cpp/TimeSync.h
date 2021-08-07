@@ -1,7 +1,3 @@
-//
-// Created by achains on 18.07.2021.
-//
-
 #ifndef TWIST_N_SYNC_CPP_MODULE_TIMESYNC_H
 #define TWIST_N_SYNC_CPP_MODULE_TIMESYNC_H
 
@@ -31,7 +27,7 @@ class TimeSync : public scapix::bridge::object<TimeSync> {
 
     static Eigen::Vector2d obtainRoots(Eigen::VectorXd const & coeffs, Eigen::Index const & order);
 
-    TSUtil::CorrData getInitialIndex() const;
+    tsutil::CorrData getInitialIndex() const;
 
     // 3D angular velocities from devices' gyros
     Eigen::MatrixX3d gyro_first_;

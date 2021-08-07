@@ -1,7 +1,3 @@
-//
-// Created by achains on 23.07.2021.
-//
-
 #include "TSUtil.h"
 #include "unsupported/Eigen/FFT"
 #include "unsupported/Eigen/Polynomials"
@@ -9,7 +5,7 @@
 
 #include <numeric>
 
-namespace TSUtil {
+namespace tsutil {
 
     Eigen::VectorXd arangeEigen(double start, double const & stop, double const & step){
         Eigen::Index size = std::ceil((stop - start) / step);
@@ -63,20 +59,22 @@ namespace TSUtil {
     Eigen::VectorXd eigenCrossCor(Eigen::VectorXd & data_1, Eigen::VectorXd & data_2){
         // Cross-cor(x, y) = iFFT(FFT(x) * conj(FFT(y)))
 
-        Eigen::Index shift_size_data1 = data_1.size();
-        Eigen::Index shift_size_data2 = data_2.size();
+        Eigen::Index old_data1_size = data_1.size();
+        Eigen::Index old_data2_size = data_2.size();
 
         // Length of Discrete Fourier Transform
-        Eigen::Index N = shift_size_data1 + shift_size_data2 - 1;
+        Eigen::Index N = old_data1_size + old_data2_size - 1;
 
         N = static_cast<Eigen::Index> (std::pow(2, std::ceil(std::log2(N))));
+
+        Eigen::Index shift = N - (old_data1_size + old_data2_size - 1);
 
         // Zero padding both vectors
 
         data_1.conservativeResize(N);
         data_2.conservativeResize(N);
-        for (Eigen::Index i = shift_size_data1; i < N; ++i) data_1[i] = 0.0;
-        for (Eigen::Index i = shift_size_data2; i < N; ++i) data_2[i] = 0.0;
+        for (Eigen::Index i = old_data1_size; i < N; ++i) data_1[i] = 0.0;
+        for (Eigen::Index i = old_data2_size; i < N; ++i) data_2[i] = 0.0;
 
         Eigen::FFT <double> fft;
 
@@ -92,11 +90,11 @@ namespace TSUtil {
         Eigen::VectorXd unbiased_result(N);
         fft.inv(unbiased_result, fft_result);
 
-        // Rotating cross-correlation vector on shift_size_data1
+        // Rotating cross-correlation vector on shift
         Eigen::VectorXd cross_cor(N);
-        cross_cor << unbiased_result(Eigen::seq(shift_size_data1, Eigen::last)),
-        unbiased_result(Eigen::seq(0, shift_size_data1 - 1));
+        cross_cor << unbiased_result(Eigen::seq(old_data1_size, Eigen::last)),
+        unbiased_result(Eigen::seq(0, old_data1_size - 1));
 
-        return cross_cor.reverse();
+        return cross_cor(Eigen::seq(shift, Eigen::last));
     }
 }

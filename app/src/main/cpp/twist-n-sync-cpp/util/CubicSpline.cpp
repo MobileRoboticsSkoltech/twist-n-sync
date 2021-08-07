@@ -1,7 +1,3 @@
-//
-// Created by achains on 26.07.2021.
-//
-
 #include "CubicSpline.h"
 #include "TSUtil.h"
 
@@ -39,8 +35,8 @@ Eigen::Matrix4Xd CubicSpline::getCoefficients() {
         calculateDerivative();
     }
     std::vector<double> Y = m_spline_.get_y();
-    Eigen::VectorXd A = TSUtil::vectorToEigVectorXd(Y);
-    Eigen::VectorXd B = TSUtil::vectorToEigVectorXd(derivative_);
+    Eigen::VectorXd A = tsutil::vectorToEigVectorXd(Y);
+    Eigen::VectorXd B = tsutil::vectorToEigVectorXd(derivative_);
 
     double dx = m_spline_.get_x()[1] - m_spline_.get_x()[0];
 

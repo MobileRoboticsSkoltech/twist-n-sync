@@ -1,7 +1,3 @@
-//
-// Created by achains on 26.07.2021.
-//
-
 #ifndef TWIST_N_SYNC_CPP_MODULE_CUBICSPLINE_H
 #define TWIST_N_SYNC_CPP_MODULE_CUBICSPLINE_H
 

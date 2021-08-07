@@ -1,7 +1,3 @@
-//
-// Created by achains on 23.07.2021.
-//
-
 #ifndef TWIST_N_SYNC_CPP_MODULE_TSUTIL_H
 #define TWIST_N_SYNC_CPP_MODULE_TSUTIL_H
 
@@ -9,7 +5,7 @@
 
 #include <vector>
 
-namespace TSUtil {
+namespace tsutil {
     // Implementation of numpy.arange function
     Eigen::VectorXd arangeEigen(double start, double const & stop, double const & step = 1.0);
 
