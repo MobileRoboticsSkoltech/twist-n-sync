@@ -93,7 +93,4 @@ lint/tmp/
 *.ipynb
 
 # Scapix unnecessary files
-app/src/main/cpp/generated/bridge/cs
-app/src/main/cpp/generated/bridge/js
-app/src/main/cpp/generated/bridge/objc
-app/src/main/cpp/generated/bridge/python
+app/src/main/cpp/generated/
