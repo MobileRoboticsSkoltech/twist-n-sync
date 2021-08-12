@@ -38,15 +38,14 @@ if(NOT eigen_POPULATED)
     FetchContent_Populate(eigen)
     set(eigen_EIGEN_BUILD_DOC OFF)
     set(eigen_BUILD_TESTS OFF)
+    include_directories(bridge PUBLIC ${eigen_SOURCE_DIR})
 endif()
 
 FetchContent_GetProperties(spline)
 if(NOT spline_POPULATED)
     FetchContent_Populate(spline)
+    include_directories(bridge PUBLIC ${spline_SOURCE_DIR}/src)
 endif()
-
-include_directories(bridge PUBLIC ${eigen_SOURCE_DIR})
-include_directories(bridge PUBLIC ${spline_SOURCE_DIR}/src)
 
 set(GENERATED_DIR generated/bridge/java)
 
