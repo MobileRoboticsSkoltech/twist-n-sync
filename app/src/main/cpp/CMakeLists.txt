@@ -13,7 +13,7 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(cmodule)
 
 set(SCAPIX_BRIDGE "java" CACHE STRING "cpp, java, objc, python, js, cs")
-set(SCAPIX_PLATFORM "windows" CACHE STRING "one of the folders inside 'source/chat/platform': ios, android, macos, windows, linux, etc.")
+set(SCAPIX_PLATFORM "windows" CACHE STRING "one of the folders inside 'source/<project>/platform/': ios, android, macos, windows, linux, etc.")
 set(SCAPIX_JAVA_API "android-28" CACHE STRING "one of the folders inside 'scapix/java_api': jdk-11.0.2, android-28, etc.")
 
 set(SOURCE_LIST twist-n-sync-cpp/TimeSync.cpp twist-n-sync-cpp/util/CubicSpline.cpp twist-n-sync-cpp/util/TSUtil.cpp)
