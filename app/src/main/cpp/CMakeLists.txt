@@ -10,6 +10,25 @@ FetchContent_Declare(
         URL_HASH SHA256=b49019b355423aebacd927e99541b146c900ef416ae1da6a8343a2a274dd4876
 )
 
+FetchContent_MakeAvailable(cmodule)
+
+set(SCAPIX_BRIDGE "java" CACHE STRING "cpp, java, objc, python, js, cs")
+set(SCAPIX_PLATFORM "windows" CACHE STRING "one of the folders inside 'source/chat/platform': ios, android, macos, windows, linux, etc.")
+set(SCAPIX_JAVA_API "android-28" CACHE STRING "one of the folders inside 'scapix/java_api': jdk-11.0.2, android-28, etc.")
+
+set(SOURCE_LIST twist-n-sync-cpp/TimeSync.cpp twist-n-sync-cpp/util/CubicSpline.cpp twist-n-sync-cpp/util/TSUtil.cpp)
+add_library(bridge SHARED ${SOURCE_LIST})
+
+find_package(Scapix REQUIRED)
+scapix_bridge_headers(bridge "com.googleresearch.capturesync.softwaresync" twist-n-sync-cpp/TimeSync.h)
+
+set(GENERATED_DIR generated/bridge/java)
+
+include_directories(
+        ${GENERATED_DIR}
+        twist-n-sync-cpp
+)
+
 FetchContent_Declare(
         eigen
         GIT_REPOSITORY https://gitlab.com/libeigen/eigen.git
@@ -22,24 +41,17 @@ FetchContent_Declare(
         GIT_TAG origin/master
 )
 
-FetchContent_MakeAvailable(cmodule)
-FetchContent_MakeAvailable(eigen)
-FetchContent_MakeAvailable(spline)
+FetchContent_GetProperties(eigen)
+if(NOT eigen_POPULATED)
+    FetchContent_Populate(eigen)
+    set(eigen_EIGEN_BUILD_DOC OFF)
+    set(eigen_BUILD_TESTS OFF)
+endif()
 
-set(SCAPIX_BRIDGE "java" CACHE STRING "java")
-set(SCAPIX_JAVA_API "android-28" CACHE STRING "one of the folders inside 'scapix/java_api': jdk-11.0.2, android-28, etc.")
-set(GENERATED_DIR generated/bridge/java)
-set(SOURCE_LIST twist-n-sync-cpp/TimeSync.cpp twist-n-sync-cpp/util/CubicSpline.cpp twist-n-sync-cpp/util/TSUtil.cpp)
+FetchContent_GetProperties(spline)
+if(NOT spline_POPULATED)
+    FetchContent_Populate(spline)
+endif()
 
-add_library(bridge SHARED ${SOURCE_LIST})
-
-find_package(Scapix REQUIRED)
-scapix_bridge_headers(bridge "com.googleresearch.capturesync.softwaresync" twist-n-sync-cpp/TimeSync.h)
-
-include_directories(
-        ${GENERATED_DIR}
-        twist-n-sync-cpp
-)
-
-target_include_directories(bridge PUBLIC "${CMAKE_BINARY_DIR}/_deps/eigen-src")
-target_include_directories(bridge PUBLIC "${CMAKE_BINARY_DIR}/_deps/spline-src/src")
+include_directories(bridge PUBLIC ${eigen_SOURCE_DIR})
+include_directories(bridge PUBLIC ${spline_SOURCE_DIR}/src)
