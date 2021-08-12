@@ -21,13 +21,6 @@ add_library(bridge SHARED ${SOURCE_LIST})
 find_package(Scapix REQUIRED)
 scapix_bridge_headers(bridge "com.googleresearch.capturesync.softwaresync" twist-n-sync-cpp/TimeSync.h)
 
-set(GENERATED_DIR generated/bridge/java)
-
-include_directories(
-        ${GENERATED_DIR}
-        twist-n-sync-cpp
-)
-
 FetchContent_Declare(
         eigen
         GIT_REPOSITORY https://gitlab.com/libeigen/eigen.git
@@ -54,3 +47,10 @@ endif()
 
 include_directories(bridge PUBLIC ${eigen_SOURCE_DIR})
 include_directories(bridge PUBLIC ${spline_SOURCE_DIR}/src)
+
+set(GENERATED_DIR generated/bridge/java)
+
+include_directories(
+        ${GENERATED_DIR}
+        twist-n-sync-cpp
+)
