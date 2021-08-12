@@ -14,7 +14,7 @@ android {
         externalNativeBuild {
             cmake {
                 cppFlags '-O2'
-                arguments "-DANDROID_ARM_NEON=FALSE"
+                arguments "-DANDROID_ARM_NEON=TRUE"
             }
         }
     }
