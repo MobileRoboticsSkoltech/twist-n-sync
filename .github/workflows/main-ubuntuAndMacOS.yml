@@ -38,7 +38,7 @@ jobs:
         if: matrix.os == 'macos-latest'
         uses: reactivecircus/android-emulator-runner@v2
         with:
-          api-level: 21
+          api-level: 23
           target: default
           arch: x86
           ndk: 22.1.7171670

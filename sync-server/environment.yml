@@ -1,5 +1,0 @@
-name: sync-server
-dependencies:
-  - numpy
-  - pandas
-  - scipy

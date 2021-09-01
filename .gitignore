@@ -92,6 +92,5 @@ lint/tmp/
 
 *.ipynb
 
-sync-server/__pycache__/
-
-*.csv
+# Scapix unnecessary files
+app/src/main/cpp/generated/
