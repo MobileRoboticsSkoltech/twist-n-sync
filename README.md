@@ -7,6 +7,13 @@ We use a modified version of [libsoftwaresync](https://github.com/google-researc
 [Wireless Software Synchronization of Multiple Distributed Cameras](https://arxiv.org/abs/1812.09366).
 _Sameer Ansari, Neal Wadhwa, Rahul Garg, Jiawen Chen_, ICCP 2019.
 
+### Major update (summer 2021)
+
+- **Gyroscope-based time synchronization algorithm** is now available as a standalone C++ library! Author: [Arthur Chains](https://github.com/achains)
+- Additionally, the library was **integrated into the application** instead of the old setup requiring PC server. Author of the integration: [Pavel Mokeev](https://github.com/pmokeev)
+
+The library is publicly available on [Github](https://github.com/achains/Twist-n-Sync-CPP-Module). [This presentation](https://docs.google.com/presentation/d/1gX3Kj3gN3wH_CyyOZ-pAtRu5GJzXibgBMo_3uWvNeQc/edit#slide=id.ge6af606f85_0_5) contains more info on the update, as well as some performance tests and details of the implementation.
+
 ### Our main contribution to the app
 
 - We integrated **gyroscope-based time synchronization algorithm** instead of SNTP to demonstrate sync accuracy. The algoritm requires client and leader smartphone to be rigidly attached together and shaken for a few seconds. After that the recorded gyroscope data is processed and calculated offset is returned to the client smartphone. All the experiments have been carried out using two Samsung S10e smartphones.
@@ -42,12 +49,6 @@ _Experiment with snowballs, photos shot by two Samsung Galaxy S10e smartphones_
 _Footage of experiment with snowballs_
 
 ### Installation
-
-#### Gyro-based sync server setup
-
-1.  Make sure that your pc is connected to **the same network** as all the smartphones.
-2.  Before using the app, **run** ```python3 sync-server/server.py```. This command launches simple TCP-based server which accepts two gyroscope files, calculates and returns offset in Ns to the leader smartphone.
-3.  Specify **pc host address** in ```Constants``` class of AndroidStudio project (address can be found with ```ifconfig```)
 
 #### App setup
 
